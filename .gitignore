@@ -11,8 +11,10 @@
 *.exe
 *.zip
 
-# GodotSteam runtime files that get dropped next to the editor/exe
+# GodotSteam runtime files that get dropped next to the editor/exe,
+# and temp files (~*.dll) left behind by its auto-updater
 steam_api64.dll.old
+~*.dll
 
 # OS junk
 Thumbs.db
