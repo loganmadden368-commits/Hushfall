@@ -113,7 +113,13 @@ Build in this order. Each phase lists its goal, a sample ask for Claude Code, wh
 **You do:** create the test scene/nodes it specifies, run it, invite a second instance/account in.
 **Done when:** two clients see each other move in real time.
 
-### Phase 2 — Proximity voice ⭐ (the hard, core feature)
+### Phase 2 — Proximity voice ⭐ (the hard, core feature) — ✅ DONE 2026-07-02
+> **Completed.** Steam voice capture -> unreliable RPC broadcast -> positional
+> playback from the speaker's avatar (AudioStreamPlayer3D): distance falloff +
+> stereo panning verified on PC + Mac ("walking away fades their voice out").
+> Voice dials (`voice_max_distance`, `voice_unit_size`, `voice_mode` =
+> push_to_talk/toggle/open) in `config/gameplay.cfg`. Speaking indicator,
+> mic HUD, and M-key mute included. Solo echo test works outside lobbies.
 **Goal:** You hear other players, and their volume falls off with in-game distance.
 **Ask Claude Code:** *"Using GodotSteam's voice capture/playback, transmit each player's mic to others, and attenuate each incoming voice stream's volume based on the 3D distance between the two players, so far-away players are quiet/inaudible."*
 **You do:** test with a second real Steam account or a friend (see Part E — voice needs real clients).
