@@ -48,15 +48,10 @@ func _on_leave_pressed() -> void:
 
 
 func _on_lobby_entered() -> void:
-	if LobbyManager.is_host:
-		%StatusLabel.text = "✅ Hosting lobby %s — waiting for players..." % LobbyManager.lobby_id
-	else:
-		%StatusLabel.text = "✅ Joined lobby %s" % LobbyManager.lobby_id
-	%LeaveButton.visible = true
-	%HostButton.disabled = true
-	%FindButton.disabled = true
-	_clear_lobby_buttons()
-	_update_member_list()
+	# In (or hosting) a lobby -> leave the menu and load the game world.
+	# call_deferred: never yank the scene out from under a signal handler.
+	%StatusLabel.text = "✅ In lobby %s — loading world..." % LobbyManager.lobby_id
+	get_tree().change_scene_to_file.call_deferred("res://scenes/world.tscn")
 
 
 func _on_lobby_join_failed(reason: String) -> void:
