@@ -25,8 +25,12 @@ const VOICE_RESULT_OK: int = 0
 
 var is_recording: bool = false
 
-# Mute (M key) overrides push-to-talk entirely — V does nothing while muted.
+# Mute (M key) overrides every voice mode — nothing transmits while muted.
 var muted: bool = false
+
+# For "toggle" mode (and the solo echo test in "open" mode): tracks whether
+# the mic was tapped on.
+var _toggle_on: bool = false
 
 # The local echo player: a generator stream we push decompressed samples into.
 var echo_playback: AudioStreamGeneratorPlayback = null
@@ -62,14 +66,59 @@ func _process(_delta: float) -> void:
 	if Input.is_action_just_pressed("toggle_mute"):
 		muted = not muted
 		print("[VoiceManager] Muted: ", muted)
+	if Input.is_action_just_pressed("push_to_talk"):
+		_toggle_on = not _toggle_on  # only read by toggle/echo modes below
 	_update_recording_state()
 	if is_recording:
 		_poll_voice()
 
 
-## Push-to-talk: recording tracks whether V is held (unless muted).
+func _in_lobby_with_peers() -> bool:
+	return multiplayer.has_multiplayer_peer() and multiplayer.get_peers().size() > 0
+
+
+## One-line mic status for the HUD — kept here so all the mode logic
+## lives in one script.
+func get_status_text() -> String:
+	if muted:
+		return "MIC MUTED — M to unmute"
+	if is_recording:
+		match GameConfig.voice_mode:
+			"open":
+				return "MIC OPEN (always on) — M to mute"
+			"toggle":
+				return "MIC ON — V to turn off"
+			_:
+				return "MIC ON"
+	match GameConfig.voice_mode:
+		"open":
+			return "Mic opens automatically in a lobby — M to mute"
+		"toggle":
+			return "Tap V to talk — M to mute"
+		_:
+			return "Hold V to talk — M to mute"
+
+
+## Should the mic be capturing right now? Depends on the voice_mode dial:
+##   push_to_talk — while V is held
+##   toggle       — tap V on, tap V off
+##   open         — always, while in a lobby (solo: V toggles the echo test)
+func _wants_recording() -> bool:
+	if muted:
+		return false
+	match GameConfig.voice_mode:
+		"open":
+			if _in_lobby_with_peers():
+				return true
+			return _toggle_on  # solo echo test still tap-to-toggle
+		"toggle":
+			return _toggle_on
+		_:  # push_to_talk
+			return Input.is_action_pressed("push_to_talk")
+
+
 func _update_recording_state() -> void:
-	var want_recording: bool = Input.is_action_pressed("push_to_talk") and not muted
+	var want_recording: bool = _wants_recording()
 	if want_recording == is_recording:
 		return
 	is_recording = want_recording

@@ -46,14 +46,9 @@ func _process(delta: float) -> void:
 		if _speaking_time_left <= 0.0:
 			speaking_label.visible = false
 
-	# Keep our own mic status line current.
+	# Keep our own mic status line current (text logic lives in VoiceManager).
 	if is_multiplayer_authority():
-		if VoiceManager.muted:
-			mic_label.text = "MIC MUTED — press M to unmute"
-		elif VoiceManager.is_recording:
-			mic_label.text = "MIC ON"
-		else:
-			mic_label.text = "Hold V to talk — M to mute"
+		mic_label.text = VoiceManager.get_status_text()
 
 
 ## Called by VoiceManager whenever a voice packet from this player arrives.
