@@ -1,10 +1,14 @@
 extends Node
-## VoiceManager — Steam voice capture and playback.
+## VoiceManager — Steam voice capture, transmission, and playback.
 ##
-## MILESTONE 1 (echo test): hold V and your own mic is captured through
-## Steam's voice system, decompressed, and played straight back to you.
-## No networking yet — this proves the capture -> decompress -> playback
-## pipeline works on one machine before we send voice to anyone.
+## Hold V (push-to-talk) to capture your mic through Steam's voice system.
+## - In a lobby: the compressed voice is broadcast to every peer as an
+##   UNRELIABLE RPC (a lost packet = a tiny blip; voice must never stall
+##   waiting for retransmission). Each sender gets their own playback
+##   stream on the receiving side. Flat volume for now — proximity
+##   attenuation is the next milestone.
+## - Not in a lobby: your voice loops back to your own ears (echo test),
+##   so the pipeline stays testable solo.
 ##
 ## How Steam voice works: while recording is on, Steam compresses your mic
 ## input internally. We poll getVoice() every frame to drain whatever
@@ -24,16 +28,29 @@ var is_recording: bool = false
 # The local echo player: a generator stream we push decompressed samples into.
 var echo_playback: AudioStreamGeneratorPlayback = null
 
+# One playback stream per remote player, created the first time we hear them.
+# peer_id -> { "player": AudioStreamPlayer, "playback": AudioStreamGeneratorPlayback }
+var remote_streams: Dictionary = {}
+
 
 func _ready() -> void:
-	var echo_player := AudioStreamPlayer.new()
+	echo_playback = _make_voice_stream()["playback"]
+	# When someone disconnects, drop their playback stream.
+	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
+
+
+## Creates an audio player ready to receive pushed voice samples.
+## Returns { "player": the node (needed for cleanup), "playback": the
+## handle we push samples into }. Used for the echo test AND remote voices.
+func _make_voice_stream() -> Dictionary:
+	var player := AudioStreamPlayer.new()
 	var generator := AudioStreamGenerator.new()
 	generator.mix_rate = VOICE_SAMPLE_RATE
 	generator.buffer_length = 0.1  # seconds of buffer; lower = less delay
-	echo_player.stream = generator
-	add_child(echo_player)
-	echo_player.play()  # must be playing before we can grab its playback
-	echo_playback = echo_player.get_stream_playback()
+	player.stream = generator
+	add_child(player)
+	player.play()  # must be playing before we can grab its playback
+	return { "player": player, "playback": player.get_stream_playback() }
 
 
 func _process(_delta: float) -> void:
@@ -65,8 +82,37 @@ func _poll_voice() -> void:
 	var voice: Dictionary = Steam.getVoice()
 	if voice["result"] != VOICE_RESULT_OK or voice["size"] <= 0:
 		return  # nothing new this frame — normal, not an error
-	# Milestone 1: play it back to ourselves. Milestone 2 sends it to peers.
-	_play_voice_buffer(voice["buffer"], echo_playback)
+
+	if multiplayer.has_multiplayer_peer() and multiplayer.get_peers().size() > 0:
+		# In a lobby with other people: broadcast to every peer.
+		# (You don't hear yourself — that's how basically all voice chat works.)
+		_receive_voice.rpc(voice["buffer"])
+	else:
+		# Alone (menu or empty lobby): echo test, hear yourself.
+		_play_voice_buffer(voice["buffer"], echo_playback)
+
+
+## Runs on every OTHER machine when someone transmits voice.
+## "unreliable" = packets may drop under bad network, which for voice is
+## the correct trade: a missing syllable beats a frozen stream.
+@rpc("any_peer", "call_remote", "unreliable")
+func _receive_voice(compressed: PackedByteArray) -> void:
+	var sender_peer_id: int = multiplayer.get_remote_sender_id()
+	_play_voice_buffer(compressed, _get_remote_playback(sender_peer_id))
+
+
+## Fetch (or lazily create) the playback stream for one remote player.
+func _get_remote_playback(peer_id: int) -> AudioStreamGeneratorPlayback:
+	if not remote_streams.has(peer_id):
+		remote_streams[peer_id] = _make_voice_stream()
+		print("[VoiceManager] First voice packet from peer ", peer_id, " — stream created")
+	return remote_streams[peer_id]["playback"]
+
+
+func _on_peer_disconnected(peer_id: int) -> void:
+	if remote_streams.has(peer_id):
+		remote_streams[peer_id]["player"].queue_free()
+		remote_streams.erase(peer_id)
 
 
 ## Decompress a Steam voice packet and push it into an audio stream.
