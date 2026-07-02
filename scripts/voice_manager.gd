@@ -101,11 +101,22 @@ func _receive_voice(compressed: PackedByteArray) -> void:
 	_play_voice_buffer(compressed, _get_remote_playback(sender_peer_id))
 
 
-## Fetch (or lazily create) the playback stream for one remote player.
+## Where should this remote player's voice come out?
+## PROXIMITY VOICE lives in this decision: if the speaker has an avatar in
+## the world, their voice plays from the avatar's AudioStreamPlayer3D —
+## Godot then applies distance falloff and left/right panning between the
+## speaker's capsule and OUR camera automatically. No avatar (still in the
+## menu, or not spawned yet) falls back to a flat non-positional stream.
 func _get_remote_playback(peer_id: int) -> AudioStreamGeneratorPlayback:
+	var avatar: Node = get_node_or_null("/root/World/Players/" + str(peer_id))
+	if avatar != null and avatar.has_method("get_voice_playback"):
+		var positional: AudioStreamGeneratorPlayback = avatar.get_voice_playback()
+		if positional != null:
+			return positional
+
 	if not remote_streams.has(peer_id):
 		remote_streams[peer_id] = _make_voice_stream()
-		print("[VoiceManager] First voice packet from peer ", peer_id, " — stream created")
+		print("[VoiceManager] First voice packet from peer ", peer_id, " — flat stream created")
 	return remote_streams[peer_id]["playback"]
 
 

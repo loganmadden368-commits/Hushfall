@@ -16,6 +16,11 @@ var max_players: int = 12  # Design doc: 8-12 players per match.
 var move_speed: float = 5.0        # meters per second
 var mouse_sensitivity: float = 0.002  # radians of turn per pixel of mouse
 
+# --- Proximity voice dials (THE core balance levers of the whole game:
+#     outbuildings must sit out of voice range of the plaza) ---
+var voice_max_distance: float = 15.0  # meters; beyond this a voice is silent
+var voice_unit_size: float = 3.0      # falloff curve: higher = carries farther
+
 
 func _ready() -> void:
 	_load_config()
@@ -33,4 +38,6 @@ func _load_config() -> void:
 	max_players = config.get_value("lobby", "max_players", max_players)
 	move_speed = config.get_value("player", "move_speed", move_speed)
 	mouse_sensitivity = config.get_value("player", "mouse_sensitivity", mouse_sensitivity)
+	voice_max_distance = config.get_value("voice", "voice_max_distance", voice_max_distance)
+	voice_unit_size = config.get_value("voice", "voice_unit_size", voice_unit_size)
 	print("[GameConfig] Loaded. max_players = ", max_players)

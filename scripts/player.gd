@@ -10,6 +10,7 @@ extends CharacterBody3D
 
 @onready var head: Node3D = $Head
 @onready var camera: Camera3D = $Head/Camera3D
+@onready var voice_output: AudioStreamPlayer3D = $VoiceOutput
 
 
 func _enter_tree() -> void:
@@ -18,10 +19,21 @@ func _enter_tree() -> void:
 
 
 func _ready() -> void:
+	# Voice proximity dials apply on EVERY machine's copy of every avatar —
+	# attenuation happens on the listener's side.
+	voice_output.max_distance = GameConfig.voice_max_distance
+	voice_output.unit_size = GameConfig.voice_unit_size
+
 	if not is_multiplayer_authority():
 		return  # someone else's avatar — just a capsule we look at
 	camera.current = true
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED  # lock mouse for mouselook
+
+
+## VoiceManager pushes decompressed voice samples here so this player's
+## speech comes OUT of their capsule, positionally, with distance falloff.
+func get_voice_playback() -> AudioStreamGeneratorPlayback:
+	return voice_output.get_stream_playback()
 
 
 func _unhandled_input(event: InputEvent) -> void:
