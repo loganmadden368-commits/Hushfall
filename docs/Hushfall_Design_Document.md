@@ -185,6 +185,10 @@ Suggested high-level order:
 - Player ratios and whether to scale Mimic count with lobby size.
 - Respawn rules — is a hush permanent for the match, or can ghosts ever return?
 - Movement feel, sprint/stamina, can the Mimic move differently?
+- Jumping and crouching (dev note, Phase 1): both deliberately left out of the
+  networking skeleton. Crouching should slow the player; could double as a
+  "hide in the dark" verb. Add when movement/gameplay phases need them —
+  speeds become config dials like move_speed.
 - Cosmetics / progression (likely post-launch).
 
 ---
