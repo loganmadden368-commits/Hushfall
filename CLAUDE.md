@@ -11,7 +11,9 @@ beginner-readable, well-commented GDScript.
 Read both before working on gameplay. Update the production plan as phases finish.
 
 ## Current status
-- Phase 1 (networking skeleton) — in progress.
+- Phase 1 (networking skeleton) — ✅ complete, verified 2026-07-02 with
+  Windows + Mac clients over Steam relay.
+- Phase 2 (proximity voice) — next up.
 
 ## Golden rules
 - Build the multiplayer + proximity-voice skeleton FIRST, before any gameplay.

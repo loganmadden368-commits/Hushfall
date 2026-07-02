@@ -102,7 +102,12 @@ Godot is a visual engine, so this is a **partnership**, not "Claude Code builds 
 
 Build in this order. Each phase lists its goal, a sample ask for Claude Code, what you do by hand, and how you know it's done. **Do not skip ahead** — each phase rests on the last.
 
-### Phase 1 — Networking skeleton ⭐ (THE FIRST THING)
+### Phase 1 — Networking skeleton ⭐ (THE FIRST THING) — ✅ DONE 2026-07-02
+> **Completed.** Steam lobby (host/find/join over relay) via SteamMultiplayerPeer,
+> per-player capsule avatars with WASD + mouselook, position/rotation sync via
+> MultiplayerSynchronizer. Verified with two clients (Windows PC + Mac) seeing
+> each other move in real time. Playtest dials live in `config/gameplay.cfg`.
+
 **Goal:** A few cube-avatars in a shared space, joined over Steam, moving in sync.
 **Ask Claude Code:** *"Set up a Steam lobby with GodotSteam: one player hosts, others join via Steam, using Steam's networking (relay) so there's no port-forwarding. Spawn a simple capsule avatar per player with WASD + mouselook first-person movement, and sync everyone's position. Keep it minimal."*
 **You do:** create the test scene/nodes it specifies, run it, invite a second instance/account in.
