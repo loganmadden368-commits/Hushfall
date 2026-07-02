@@ -1,13 +1,13 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://scripts/world.gd" id="1_world"]
 [ext_resource type="PackedScene" path="res://scenes/greybox_building.tscn" id="2_building"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
-size = Vector3(120, 1, 120)
+size = Vector3(160, 1, 180)
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
-size = Vector3(120, 1, 120)
+size = Vector3(160, 1, 180)
 
 [sub_resource type="StandardMaterial3D" id="Material_plaza"]
 albedo_color = Color(0.45, 0.4, 0.33, 1)
@@ -31,18 +31,47 @@ height = 0.9
 height = 0.9
 radius = 1.5
 
+[sub_resource type="StandardMaterial3D" id="Material_water"]
+albedo_color = Color(0.1, 0.18, 0.3, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_water"]
+material = SubResource("Material_water")
+size = Vector3(170, 0.3, 32)
+
+[sub_resource type="BoxMesh" id="BoxMesh_plateau"]
+size = Vector3(36, 4, 28)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_plateau"]
+size = Vector3(36, 4, 28)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ramp_south"]
+size = Vector3(6, 0.4, 12)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ramp_south"]
+size = Vector3(6, 0.4, 12)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ramp_west"]
+size = Vector3(12, 0.4, 6)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ramp_west"]
+size = Vector3(12, 0.4, 6)
+
 [node name="World" type="Node3D"]
 script = ExtResource("1_world")
 
 [node name="Floor" type="StaticBody3D" parent="."]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, -0.5, -5)
 shape = SubResource("BoxShape3D_floor")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, -0.5, -5)
 mesh = SubResource("BoxMesh_floor")
+
+[node name="Water" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, 0, 66)
+mesh = SubResource("BoxMesh_water")
 
 [node name="PlazaDisc" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
@@ -58,6 +87,32 @@ mesh = SubResource("CylinderMesh_bonfire")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
 shape = SubResource("CylinderShape3D_bonfire")
 
+[node name="TheRise" type="StaticBody3D" parent="."]
+
+[node name="PlateauMesh" type="MeshInstance3D" parent="TheRise"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 2, -50)
+mesh = SubResource("BoxMesh_plateau")
+
+[node name="PlateauShape" type="CollisionShape3D" parent="TheRise"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 2, -50)
+shape = SubResource("BoxShape3D_plateau")
+
+[node name="RampSouthMesh" type="MeshInstance3D" parent="TheRise"]
+transform = Transform3D(1, 0, 0, 0, 0.9428, -0.3333, 0, 0.3333, 0.9428, 8, 1.8, -30.343)
+mesh = SubResource("BoxMesh_ramp_south")
+
+[node name="RampSouthShape" type="CollisionShape3D" parent="TheRise"]
+transform = Transform3D(1, 0, 0, 0, 0.9428, -0.3333, 0, 0.3333, 0.9428, 8, 1.8, -30.343)
+shape = SubResource("BoxShape3D_ramp_south")
+
+[node name="RampWestMesh" type="MeshInstance3D" parent="TheRise"]
+transform = Transform3D(0.9428, -0.3333, 0, 0.3333, 0.9428, 0, 0, 0, 1, -5.657, 1.8, -46)
+mesh = SubResource("BoxMesh_ramp_west")
+
+[node name="RampWestShape" type="CollisionShape3D" parent="TheRise"]
+transform = Transform3D(0.9428, -0.3333, 0, 0.3333, 0.9428, 0, 0, 0, 1, -5.657, 1.8, -46)
+shape = SubResource("BoxShape3D_ramp_west")
+
 [node name="Sun" type="DirectionalLight3D" parent="."]
 shadow_enabled = true
 
@@ -72,7 +127,7 @@ transform = Transform3D(0.309017, 0, 0.951057, 0, 1, 0, -0.951057, 0, 0.309017, 
 building_name = "Greenhouse"
 
 [node name="BellTower" parent="Buildings" instance=ExtResource("2_building")]
-transform = Transform3D(-0.809017, 0, 0.587785, 0, 1, 0, -0.587785, 0, -0.809017, 23.5114, 0, -32.3607)
+transform = Transform3D(-0.936, 0, 0.351, 0, 1, 0, -0.351, 0, -0.936, 18, 4, -48)
 building_name = "Bell Tower"
 
 [node name="MushroomCellar" parent="Buildings" instance=ExtResource("2_building")]
