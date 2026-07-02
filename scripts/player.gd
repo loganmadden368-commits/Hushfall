@@ -11,6 +11,12 @@ extends CharacterBody3D
 @onready var head: Node3D = $Head
 @onready var camera: Camera3D = $Head/Camera3D
 @onready var voice_output: AudioStreamPlayer3D = $VoiceOutput
+@onready var speaking_label: Label3D = $SpeakingLabel
+@onready var mic_label: Label = $HUD/MicLabel
+
+# Seconds left before the "(( talking ))" label hides. Refreshed by every
+# incoming voice packet, so it stays up through natural speech pauses.
+var _speaking_time_left: float = 0.0
 
 
 func _enter_tree() -> void:
@@ -24,10 +30,36 @@ func _ready() -> void:
 	voice_output.max_distance = GameConfig.voice_max_distance
 	voice_output.unit_size = GameConfig.voice_unit_size
 
+	# The mic HUD is personal: only shown on your own screen.
+	$HUD.visible = is_multiplayer_authority()
+
 	if not is_multiplayer_authority():
 		return  # someone else's avatar — just a capsule we look at
 	camera.current = true
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED  # lock mouse for mouselook
+
+
+func _process(delta: float) -> void:
+	# Countdown for the floating "(( talking ))" label on this avatar.
+	if _speaking_time_left > 0.0:
+		_speaking_time_left -= delta
+		if _speaking_time_left <= 0.0:
+			speaking_label.visible = false
+
+	# Keep our own mic status line current.
+	if is_multiplayer_authority():
+		if VoiceManager.muted:
+			mic_label.text = "MIC MUTED — press M to unmute"
+		elif VoiceManager.is_recording:
+			mic_label.text = "MIC ON"
+		else:
+			mic_label.text = "Hold V to talk — M to mute"
+
+
+## Called by VoiceManager whenever a voice packet from this player arrives.
+func flash_speaking_indicator() -> void:
+	speaking_label.visible = true
+	_speaking_time_left = 0.4
 
 
 ## VoiceManager pushes decompressed voice samples here so this player's

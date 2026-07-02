@@ -25,6 +25,9 @@ const VOICE_RESULT_OK: int = 0
 
 var is_recording: bool = false
 
+# Mute (M key) overrides push-to-talk entirely — V does nothing while muted.
+var muted: bool = false
+
 # The local echo player: a generator stream we push decompressed samples into.
 var echo_playback: AudioStreamGeneratorPlayback = null
 
@@ -56,14 +59,17 @@ func _make_voice_stream() -> Dictionary:
 func _process(_delta: float) -> void:
 	if not SteamManager.steam_ready:
 		return
+	if Input.is_action_just_pressed("toggle_mute"):
+		muted = not muted
+		print("[VoiceManager] Muted: ", muted)
 	_update_recording_state()
 	if is_recording:
 		_poll_voice()
 
 
-## Push-to-talk: recording tracks whether V is held.
+## Push-to-talk: recording tracks whether V is held (unless muted).
 func _update_recording_state() -> void:
-	var want_recording: bool = Input.is_action_pressed("push_to_talk")
+	var want_recording: bool = Input.is_action_pressed("push_to_talk") and not muted
 	if want_recording == is_recording:
 		return
 	is_recording = want_recording
@@ -98,6 +104,10 @@ func _poll_voice() -> void:
 @rpc("any_peer", "call_remote", "unreliable")
 func _receive_voice(compressed: PackedByteArray) -> void:
 	var sender_peer_id: int = multiplayer.get_remote_sender_id()
+	# Light up "(( talking ))" over the speaker's head, if they have one.
+	var avatar: Node = get_node_or_null("/root/World/Players/" + str(sender_peer_id))
+	if avatar != null and avatar.has_method("flash_speaking_indicator"):
+		avatar.flash_speaking_indicator()
 	_play_voice_buffer(compressed, _get_remote_playback(sender_peer_id))
 
 

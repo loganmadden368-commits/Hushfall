@@ -48,3 +48,21 @@ replication_config = SubResource("SceneReplicationConfig_sync")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
 stream = SubResource("AudioStreamGenerator_voice")
 autoplay = true
+
+[node name="SpeakingLabel" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.3, 0)
+visible = false
+billboard = 1
+text = "(( talking ))"
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="MicLabel" type="Label" parent="HUD"]
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -40.0
+offset_right = 400.0
+offset_bottom = -16.0
+grow_vertical = 0
+text = "Hold V to talk — M to mute"

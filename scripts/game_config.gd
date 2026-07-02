@@ -18,8 +18,8 @@ var mouse_sensitivity: float = 0.002  # radians of turn per pixel of mouse
 
 # --- Proximity voice dials (THE core balance levers of the whole game:
 #     outbuildings must sit out of voice range of the plaza) ---
-var voice_max_distance: float = 15.0  # meters; beyond this a voice is silent
-var voice_unit_size: float = 3.0      # falloff curve: higher = carries farther
+var voice_max_distance: float = 25.0  # meters; beyond this a voice is silent
+var voice_unit_size: float = 6.0      # falloff curve: higher = carries farther
 
 
 func _ready() -> void:
