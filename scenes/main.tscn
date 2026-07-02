@@ -11,19 +11,47 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_main")
 
-[node name="StatusLabel" type="Label" parent="."]
+[node name="Margin" type="MarginContainer" parent="."]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -400.0
-offset_top = -100.0
-offset_right = 400.0
-offset_bottom = 100.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 40
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 40
+
+[node name="UI" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="StatusLabel" type="Label" parent="Margin/UI"]
+unique_name_in_owner = true
+layout_mode = 2
 text = "Starting Steam..."
-horizontal_alignment = 1
-vertical_alignment = 1
+
+[node name="HostButton" type="Button" parent="Margin/UI"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Host a lobby"
+
+[node name="FindButton" type="Button" parent="Margin/UI"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Find Hushfall lobbies"
+
+[node name="LobbyList" type="VBoxContainer" parent="Margin/UI"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="MembersLabel" type="Label" parent="Margin/UI"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="LeaveButton" type="Button" parent="Margin/UI"]
+unique_name_in_owner = true
+layout_mode = 2
+visible = false
+text = "Leave lobby"
