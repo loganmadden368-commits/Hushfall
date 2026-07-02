@@ -1,0 +1,24 @@
+# Godot 4 — editor cache, imported assets, and per-machine files.
+# Note: *.import files ARE committed (they're needed to reimport assets);
+# only the .godot/ cache folder is ignored.
+.godot/
+/android/
+
+# Godot export output (builds go here, never in git)
+/build/
+/export/
+*.pck
+*.exe
+*.zip
+
+# GodotSteam runtime files that get dropped next to the editor/exe
+steam_api64.dll.old
+
+# OS junk
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Editor/IDE
+*.tmp
+*.bak
