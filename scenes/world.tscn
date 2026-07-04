@@ -1,4 +1,4 @@
-[gd_scene load_steps=39 format=3]
+[gd_scene load_steps=49 format=3]
 
 [ext_resource type="Script" path="res://scripts/world.gd" id="1_world"]
 [ext_resource type="PackedScene" path="res://scenes/greybox_building.tscn" id="2_building"]
@@ -103,8 +103,48 @@ size = Vector3(44, 0.04, 3)
 material = SubResource("Material_wood")
 size = Vector3(3, 0.04, 10)
 
+[sub_resource type="CylinderMesh" id="CylinderMesh_lighthouse"]
+top_radius = 2.0
+bottom_radius = 2.8
+height = 14.0
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_lighthouse"]
+height = 14.0
+radius = 2.8
+
+[sub_resource type="StandardMaterial3D" id="Material_beacon"]
+albedo_color = Color(1, 0.85, 0.5, 1)
+emission_enabled = true
+emission = Color(1, 0.8, 0.4, 1)
+emission_energy_multiplier = 2.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_beacon"]
+material = SubResource("Material_beacon")
+size = Vector3(3, 2, 3)
+
+[sub_resource type="BoxMesh" id="BoxMesh_tower"]
+size = Vector3(4, 12, 4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_tower"]
+size = Vector3(4, 12, 4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_blade"]
+size = Vector3(10, 0.5, 0.5)
+
 [sub_resource type="StandardMaterial3D" id="Material_lane"]
 albedo_color = Color(0.3, 0.28, 0.24, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_lane_nw"]
+material = SubResource("Material_lane")
+size = Vector3(31, 0.04, 4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_lane_wmnorth"]
+material = SubResource("Material_lane")
+size = Vector3(4, 0.04, 33)
+
+[sub_resource type="BoxMesh" id="BoxMesh_lane_well"]
+material = SubResource("Material_lane")
+size = Vector3(14, 0.04, 4)
 
 [sub_resource type="BoxMesh" id="BoxMesh_lane_east"]
 material = SubResource("Material_lane")
@@ -189,11 +229,11 @@ shadow_enabled = true
 [node name="Buildings" type="Node3D" parent="."]
 
 [node name="Well" parent="Buildings" instance=ExtResource("2_building")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 40)
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -30, 0, -14)
 building_name = "The Well"
 
 [node name="Greenhouse" parent="Buildings" instance=ExtResource("2_building")]
-transform = Transform3D(0.309017, 0, 0.951057, 0, 1, 0, -0.951057, 0, 0.309017, 38.0423, 0, 12.3607)
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 37, 0, 5)
 building_name = "Greenhouse"
 
 [node name="BellTower" parent="Buildings" instance=ExtResource("2_building")]
@@ -201,12 +241,62 @@ transform = Transform3D(-0.936, 0, 0.351, 0, 1, 0, -0.351, 0, -0.936, 18, 4, -48
 building_name = "Bell Tower"
 
 [node name="MushroomCellar" parent="Buildings" instance=ExtResource("2_building")]
-transform = Transform3D(-0.809017, 0, -0.587785, 0, 1, 0, 0.587785, 0, -0.809017, -23.5114, 0, -32.3607)
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 52, 0, -46)
 building_name = "Mushroom Cellar"
 
 [node name="Windmill" parent="Buildings" instance=ExtResource("2_building")]
-transform = Transform3D(0.309017, 0, -0.951057, 0, 1, 0, 0.951057, 0, 0.309017, -38.0423, 0, 12.3607)
+transform = Transform3D(-0.744, 0, -0.667, 0, 1, 0, 0.667, 0, -0.744, -52, 0, -58)
 building_name = "Windmill"
+
+[node name="Boathouse" parent="Buildings" instance=ExtResource("2_building")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 0, 48)
+building_name = "Boathouse"
+
+[node name="BellSpire" type="StaticBody3D" parent="Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28, 10, -56)
+
+[node name="Mesh" type="MeshInstance3D" parent="Buildings/BellSpire"]
+mesh = SubResource("BoxMesh_tower")
+
+[node name="Shape" type="CollisionShape3D" parent="Buildings/BellSpire"]
+shape = SubResource("BoxShape3D_tower")
+
+[node name="WindmillTower" type="StaticBody3D" parent="Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -56, 6, -68)
+
+[node name="Mesh" type="MeshInstance3D" parent="Buildings/WindmillTower"]
+mesh = SubResource("BoxMesh_tower")
+
+[node name="Shape" type="CollisionShape3D" parent="Buildings/WindmillTower"]
+shape = SubResource("BoxShape3D_tower")
+
+[node name="BladeH" type="MeshInstance3D" parent="Buildings/WindmillTower"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 2.5)
+mesh = SubResource("BoxMesh_blade")
+
+[node name="BladeV" type="MeshInstance3D" parent="Buildings/WindmillTower"]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0, 4, 2.5)
+mesh = SubResource("BoxMesh_blade")
+
+[node name="Lighthouse" type="StaticBody3D" parent="Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 66, 0, 58)
+
+[node name="TowerMesh" type="MeshInstance3D" parent="Buildings/Lighthouse"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7, 0)
+mesh = SubResource("CylinderMesh_lighthouse")
+
+[node name="TowerShape" type="CollisionShape3D" parent="Buildings/Lighthouse"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7, 0)
+shape = SubResource("CylinderShape3D_lighthouse")
+
+[node name="BeaconMesh" type="MeshInstance3D" parent="Buildings/Lighthouse"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 15, 0)
+mesh = SubResource("BoxMesh_beacon")
+
+[node name="NameSign" type="Label3D" parent="Buildings/Lighthouse"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 17.5, 0)
+billboard = 1
+text = "Lighthouse"
 
 [node name="Lanes" type="Node3D" parent="."]
 
@@ -237,6 +327,22 @@ mesh = SubResource("BoxMesh_boardwalk")
 [node name="Jetty" type="MeshInstance3D" parent="Lanes"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 66, 0.02, 51)
 mesh = SubResource("BoxMesh_jetty")
+
+[node name="WellLane" type="MeshInstance3D" parent="Lanes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19, 0.02, -10)
+mesh = SubResource("BoxMesh_lane_well")
+
+[node name="WindmillDiag" type="MeshInstance3D" parent="Lanes"]
+transform = Transform3D(0.7071, 0, -0.7071, 0, 1, 0, 0.7071, 0, 0.7071, -36, 0.02, -23)
+mesh = SubResource("BoxMesh_lane_nw")
+
+[node name="WindmillWest" type="MeshInstance3D" parent="Lanes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -41, 0.02, -20)
+mesh = SubResource("BoxMesh_lane_east")
+
+[node name="WindmillNorth" type="MeshInstance3D" parent="Lanes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -52, 0.02, -36.5)
+mesh = SubResource("BoxMesh_lane_wmnorth")
 
 [node name="MarketLanes" type="Node3D" parent="."]
 
@@ -374,6 +480,118 @@ mesh = SubResource("BoxMesh_fence")
 
 [node name="Shape" type="CollisionShape3D" parent="MarketLanes/NookFence"]
 shape = SubResource("BoxShape3D_fence")
+
+[node name="PlazaRing" type="Node3D" parent="."]
+
+[node name="Ring1" type="StaticBody3D" parent="PlazaRing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 2, -14)
+
+[node name="Mesh" type="MeshInstance3D" parent="PlazaRing/Ring1"]
+mesh = SubResource("BoxMesh_houseA")
+
+[node name="Shape" type="CollisionShape3D" parent="PlazaRing/Ring1"]
+shape = SubResource("BoxShape3D_houseA")
+
+[node name="Ring2" type="StaticBody3D" parent="PlazaRing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 1.6, -7)
+
+[node name="Mesh" type="MeshInstance3D" parent="PlazaRing/Ring2"]
+mesh = SubResource("BoxMesh_houseB")
+
+[node name="Shape" type="CollisionShape3D" parent="PlazaRing/Ring2"]
+shape = SubResource("BoxShape3D_houseB")
+
+[node name="Ring3" type="StaticBody3D" parent="PlazaRing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17, 1.6, 9)
+
+[node name="Mesh" type="MeshInstance3D" parent="PlazaRing/Ring3"]
+mesh = SubResource("BoxMesh_houseB")
+
+[node name="Shape" type="CollisionShape3D" parent="PlazaRing/Ring3"]
+shape = SubResource("BoxShape3D_houseB")
+
+[node name="Ring4" type="StaticBody3D" parent="PlazaRing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 2, 17)
+
+[node name="Mesh" type="MeshInstance3D" parent="PlazaRing/Ring4"]
+mesh = SubResource("BoxMesh_houseA")
+
+[node name="Shape" type="CollisionShape3D" parent="PlazaRing/Ring4"]
+shape = SubResource("BoxShape3D_houseA")
+
+[node name="Ring5" type="StaticBody3D" parent="PlazaRing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 1.6, 16)
+
+[node name="Mesh" type="MeshInstance3D" parent="PlazaRing/Ring5"]
+mesh = SubResource("BoxMesh_houseB")
+
+[node name="Shape" type="CollisionShape3D" parent="PlazaRing/Ring5"]
+shape = SubResource("BoxShape3D_houseB")
+
+[node name="Ring6" type="StaticBody3D" parent="PlazaRing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 2, 13)
+
+[node name="Mesh" type="MeshInstance3D" parent="PlazaRing/Ring6"]
+mesh = SubResource("BoxMesh_houseA")
+
+[node name="Shape" type="CollisionShape3D" parent="PlazaRing/Ring6"]
+shape = SubResource("BoxShape3D_houseA")
+
+[node name="Ring7" type="StaticBody3D" parent="PlazaRing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17, 1.6, 4)
+
+[node name="Mesh" type="MeshInstance3D" parent="PlazaRing/Ring7"]
+mesh = SubResource("BoxMesh_houseB")
+
+[node name="Shape" type="CollisionShape3D" parent="PlazaRing/Ring7"]
+shape = SubResource("BoxShape3D_houseB")
+
+[node name="Ring8" type="StaticBody3D" parent="PlazaRing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 2, -14)
+
+[node name="Mesh" type="MeshInstance3D" parent="PlazaRing/Ring8"]
+mesh = SubResource("BoxMesh_houseA")
+
+[node name="Shape" type="CollisionShape3D" parent="PlazaRing/Ring8"]
+shape = SubResource("BoxShape3D_houseA")
+
+[node name="WestVillage" type="Node3D" parent="."]
+
+[node name="WellRow1" type="StaticBody3D" parent="WestVillage"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23, 1.6, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="WestVillage/WellRow1"]
+mesh = SubResource("BoxMesh_houseB")
+
+[node name="Shape" type="CollisionShape3D" parent="WestVillage/WellRow1"]
+shape = SubResource("BoxShape3D_houseB")
+
+[node name="WellRow2" type="StaticBody3D" parent="WestVillage"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -29, 1.6, -3)
+
+[node name="Mesh" type="MeshInstance3D" parent="WestVillage/WellRow2"]
+mesh = SubResource("BoxMesh_houseB")
+
+[node name="Shape" type="CollisionShape3D" parent="WestVillage/WellRow2"]
+shape = SubResource("BoxShape3D_houseB")
+
+[node name="Barn1" type="StaticBody3D" parent="WestVillage"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -38, 1.6, -26)
+
+[node name="Mesh" type="MeshInstance3D" parent="WestVillage/Barn1"]
+mesh = SubResource("BoxMesh_houseB")
+
+[node name="Shape" type="CollisionShape3D" parent="WestVillage/Barn1"]
+shape = SubResource("BoxShape3D_houseB")
+
+[node name="Barn2" type="StaticBody3D" parent="WestVillage"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 1.6, 32)
+
+[node name="Mesh" type="MeshInstance3D" parent="WestVillage/Barn2"]
+mesh = SubResource("BoxMesh_houseB")
+
+[node name="Shape" type="CollisionShape3D" parent="WestVillage/Barn2"]
+shape = SubResource("BoxShape3D_houseB")
 
 [node name="Players" type="Node3D" parent="."]
 
