@@ -197,3 +197,44 @@ Suggested high-level order:
 
 - **Steam Direct fee:** $100 one-time per title, **recoupable** after $1,000 in revenue.
 - Confirm the name **Hushfall** is clear on Steam search and that matching social handles are free before committing publicly.
+
+---
+
+## Appendix A — Map design principles (research pass, 2026-07-02)
+
+Extracted from the reference class (Among Us, Counter-Strike/Valve, Lethal
+Company/Phasmophobia, RE4's village, Dark Souls, Disney wayfinding). These
+govern every future map decision. Principles only — no layout was copied.
+
+1. **Three lanes you can hold in your head** (Skeld). Exactly three trunk
+   lanes leave the plaza (East, North-via-Upper, South); every task site
+   hangs off a trunk. Never add a fourth trunk.
+2. **Isolation lives at the end of chains** (Skeld's Electrical). Far sites
+   are deliberately end-of-chain with narrow entries — but every one gets a
+   single escape affordance (second exit/gap) so being cornered is tense,
+   not automatic death.
+3. **Loops and connectors, not corridors** (dust2). Every major journey is a
+   loop or has two approaches of different length/danger; connectors give
+   pursuit counterplay. No out-and-back corridors to task sites.
+4. **Chokepoints are scheduled meetings** (Valve). Exactly three chokes —
+   kiosk corner (E), Rise ramp landing (N), boardwalk mouth (S) — kept ~4m
+   wide, each with a lantern. Act 3's fair-fight rooms.
+5. **Light is the real level geometry** (Lethal Company/Phasmophobia).
+   Lantern pools only at decision points (plaza, sites, chokes, 1–2 forks);
+   mid-segment darkness stays true dark. Dying lanterns rewire the map —
+   escalation expressed spatially. Lantern-death ORDER is a balance dial,
+   not pure random.
+6. **A town fights back when you can cut through it** (RE4 village). Some
+   market fillers are pass-through breezeways; task buildings get two exits
+   where fiction allows. This is what makes Act 3 hunts playable in town.
+7. **Shortcuts are the map-knowledge reward** (Dark Souls). Every alley must
+   be faster AND darker or it gets cut. Exactly ONE dead end on the whole
+   map, and it is baited (lantern/pickup) so entering is a choice.
+8. **Navigate by silhouette** (Disney's "weenie"). Three distinct skyline
+   landmarks: Bell Tower (square, N), Lighthouse (round + glow, SE),
+   Windmill (bladed, NW). Rule: from every lane intersection at least one
+   weenie is visible; market roofs capped at 5m to guarantee it.
+
+*Applied 2026-07-02: south boardwalk loop added (P3), market back alley
+added (P3/P7), two breezeway houses (P6), dead ends cut from two to one
+baited nook (P7).*
