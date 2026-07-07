@@ -1,13 +1,8 @@
-[gd_scene load_steps=76 format=3]
+[gd_scene load_steps=73 format=3]
 
 [ext_resource type="Script" path="res://scripts/world.gd" id="1_world"]
 [ext_resource type="PackedScene" path="res://scenes/greybox_building.tscn" id="2_building"]
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
-size = Vector3(160, 1, 180)
-
-[sub_resource type="BoxMesh" id="BoxMesh_floor"]
-size = Vector3(160, 1, 180)
+[ext_resource type="Script" path="res://scripts/terrain.gd" id="3_terrain"]
 
 [sub_resource type="StandardMaterial3D" id="Material_plaza"]
 albedo_color = Color(0.45, 0.4, 0.33, 1)
@@ -37,18 +32,6 @@ albedo_color = Color(0.1, 0.18, 0.3, 1)
 [sub_resource type="BoxMesh" id="BoxMesh_water"]
 material = SubResource("Material_water")
 size = Vector3(170, 0.3, 32)
-
-[sub_resource type="StandardMaterial3D" id="Material_hill"]
-albedo_color = Color(0.36, 0.4, 0.3, 1)
-
-[sub_resource type="CylinderMesh" id="CylinderMesh_hill"]
-material = SubResource("Material_hill")
-top_radius = 12.0
-bottom_radius = 26.0
-height = 4.0
-
-[sub_resource type="ConvexPolygonShape3D" id="ConvexShape_hill"]
-points = PackedVector3Array(26, -2, 0, 22.52, -2, 13, 13, -2, 22.52, 0, -2, 26, -13, -2, 22.52, -22.52, -2, 13, -26, -2, 0, -22.52, -2, -13, -13, -2, -22.52, 0, -2, -26, 13, -2, -22.52, 22.52, -2, -13, 12, 2, 0, 10.39, 2, 6, 6, 2, 10.39, 0, 2, 12, -6, 2, 10.39, -10.39, 2, 6, -12, 2, 0, -10.39, 2, -6, -6, 2, -10.39, 0, 2, -12, 6, 2, -10.39, 10.39, 2, -6)
 
 [sub_resource type="StandardMaterial3D" id="Material_spit"]
 albedo_color = Color(0.4, 0.38, 0.34, 1)
@@ -157,9 +140,13 @@ size = Vector3(4, 0.04, 28)
 material = SubResource("Material_lane")
 size = Vector3(12, 0.04, 4)
 
-[sub_resource type="BoxMesh" id="BoxMesh_lane_east"]
+[sub_resource type="BoxMesh" id="BoxMesh_lane_flat2"]
 material = SubResource("Material_lane")
-size = Vector3(19, 0.04, 4)
+size = Vector3(2, 0.04, 4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_lane_humpseg"]
+material = SubResource("Material_lane")
+size = Vector3(8.25, 0.04, 4)
 
 [sub_resource type="BoxMesh" id="BoxMesh_lane_diag"]
 material = SubResource("Material_lane")
@@ -268,15 +255,8 @@ size = Vector3(4, 0.04, 34)
 [node name="World" type="Node3D"]
 script = ExtResource("1_world")
 
-[node name="Floor" type="StaticBody3D" parent="."]
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, -0.5, -5)
-shape = SubResource("BoxShape3D_floor")
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, -0.5, -5)
-mesh = SubResource("BoxMesh_floor")
+[node name="Terrain" type="StaticBody3D" parent="."]
+script = ExtResource("3_terrain")
 
 [node name="Water" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, 0, 66)
@@ -295,16 +275,6 @@ mesh = SubResource("CylinderMesh_bonfire")
 [node name="BonfireShape" type="CollisionShape3D" parent="Bonfire"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
 shape = SubResource("CylinderShape3D_bonfire")
-
-[node name="TheRise" type="StaticBody3D" parent="."]
-
-[node name="HillMesh" type="MeshInstance3D" parent="TheRise"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 2, -56)
-mesh = SubResource("CylinderMesh_hill")
-
-[node name="HillShape" type="CollisionShape3D" parent="TheRise"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 2, -56)
-shape = SubResource("ConvexShape_hill")
 
 [node name="Sun" type="DirectionalLight3D" parent="."]
 shadow_enabled = true
@@ -392,9 +362,21 @@ text = "Lighthouse"
 
 [node name="Lanes" type="Node3D" parent="."]
 
-[node name="EastLane" type="MeshInstance3D" parent="Lanes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 21.5, 0.02, 0)
-mesh = SubResource("BoxMesh_lane_east")
+[node name="EastLaneFlatW" type="MeshInstance3D" parent="Lanes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 0.02, 0)
+mesh = SubResource("BoxMesh_lane_flat2")
+
+[node name="EastLaneUp" type="MeshInstance3D" parent="Lanes"]
+transform = Transform3D(0.9701, -0.2425, 0, 0.2425, 0.9701, 0, 0, 0, 1, 18, 1.02, 0)
+mesh = SubResource("BoxMesh_lane_humpseg")
+
+[node name="EastLaneDown" type="MeshInstance3D" parent="Lanes"]
+transform = Transform3D(0.9701, 0.2425, 0, -0.2425, 0.9701, 0, 0, 0, 1, 26, 1.02, 0)
+mesh = SubResource("BoxMesh_lane_humpseg")
+
+[node name="EastLaneFlatE" type="MeshInstance3D" parent="Lanes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0.02, 0)
+mesh = SubResource("BoxMesh_lane_flat2")
 
 [node name="MarketBend" type="MeshInstance3D" parent="Lanes"]
 transform = Transform3D(0.7071, 0, 0.7071, 0, 1, 0, -0.7071, 0, 0.7071, 42, 0.02, -9)
