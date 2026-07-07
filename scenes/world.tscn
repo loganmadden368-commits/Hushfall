@@ -1,4 +1,4 @@
-[gd_scene load_steps=73 format=3]
+[gd_scene load_steps=76 format=3]
 
 [ext_resource type="Script" path="res://scripts/world.gd" id="1_world"]
 [ext_resource type="PackedScene" path="res://scenes/greybox_building.tscn" id="2_building"]
@@ -50,11 +50,22 @@ height = 4.0
 [sub_resource type="ConvexPolygonShape3D" id="ConvexShape_hill"]
 points = PackedVector3Array(26, -2, 0, 22.52, -2, 13, 13, -2, 22.52, 0, -2, 26, -13, -2, 22.52, -22.52, -2, 13, -26, -2, 0, -22.52, -2, -13, -13, -2, -22.52, 0, -2, -26, 13, -2, -22.52, 22.52, -2, -13, 12, 2, 0, 10.39, 2, 6, 6, 2, 10.39, 0, 2, 12, -6, 2, 10.39, -10.39, 2, 6, -12, 2, 0, -10.39, 2, -6, -6, 2, -10.39, 0, 2, -12, 6, 2, -10.39, 10.39, 2, -6)
 
-[sub_resource type="BoxMesh" id="BoxMesh_rock"]
-size = Vector3(8, 0.6, 8)
+[sub_resource type="StandardMaterial3D" id="Material_spit"]
+albedo_color = Color(0.4, 0.38, 0.34, 1)
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_rock"]
-size = Vector3(8, 0.6, 8)
+[sub_resource type="BoxMesh" id="BoxMesh_spit"]
+material = SubResource("Material_spit")
+size = Vector3(10, 0.8, 22)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_spit"]
+size = Vector3(10, 0.8, 22)
+
+[sub_resource type="BoxMesh" id="BoxMesh_causewayramp"]
+material = SubResource("Material_spit")
+size = Vector3(3, 0.06, 4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_causewayramp"]
+size = Vector3(3, 0.06, 4)
 
 [sub_resource type="BoxMesh" id="BoxMesh_houseA"]
 size = Vector3(8, 4, 8)
@@ -101,7 +112,7 @@ size = Vector3(38, 0.04, 3)
 
 [sub_resource type="BoxMesh" id="BoxMesh_jetty"]
 material = SubResource("Material_wood")
-size = Vector3(3, 0.04, 12)
+size = Vector3(3, 0.04, 20)
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_lighthouse"]
 top_radius = 2.0
@@ -350,31 +361,32 @@ mesh = SubResource("BoxMesh_blade")
 transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0, 4, 2.5)
 mesh = SubResource("BoxMesh_blade")
 
+[node name="LighthouseSpit" type="StaticBody3D" parent="Buildings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 64, -0.1, 55)
+
+[node name="Mesh" type="MeshInstance3D" parent="Buildings/LighthouseSpit"]
+mesh = SubResource("BoxMesh_spit")
+
+[node name="Shape" type="CollisionShape3D" parent="Buildings/LighthouseSpit"]
+shape = SubResource("BoxShape3D_spit")
+
 [node name="Lighthouse" type="StaticBody3D" parent="Buildings"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 64, 0, 58)
-
-[node name="RockMesh" type="MeshInstance3D" parent="Buildings/Lighthouse"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
-mesh = SubResource("BoxMesh_rock")
-
-[node name="RockShape" type="CollisionShape3D" parent="Buildings/Lighthouse"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
-shape = SubResource("BoxShape3D_rock")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 64, 0.3, 60)
 
 [node name="TowerMesh" type="MeshInstance3D" parent="Buildings/Lighthouse"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.6, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7, 0)
 mesh = SubResource("CylinderMesh_lighthouse")
 
 [node name="TowerShape" type="CollisionShape3D" parent="Buildings/Lighthouse"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.6, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7, 0)
 shape = SubResource("CylinderShape3D_lighthouse")
 
 [node name="BeaconMesh" type="MeshInstance3D" parent="Buildings/Lighthouse"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 15.6, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 15, 0)
 mesh = SubResource("BoxMesh_beacon")
 
 [node name="NameSign" type="Label3D" parent="Buildings/Lighthouse"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 18.1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 17.5, 0)
 billboard = 1
 text = "Lighthouse"
 
@@ -449,8 +461,17 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 43, 0.02, 43)
 mesh = SubResource("BoxMesh_boardwalk")
 
 [node name="Jetty" type="MeshInstance3D" parent="Lanes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 63.5, 0.02, 50)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 64, 0.32, 54)
 mesh = SubResource("BoxMesh_jetty")
+
+[node name="CausewayRamp" type="StaticBody3D" parent="Lanes"]
+transform = Transform3D(1, 0, 0, 0, 0.997, -0.0769, 0, 0.0769, 0.997, 63.5, 0.16, 45.8)
+
+[node name="Mesh" type="MeshInstance3D" parent="Lanes/CausewayRamp"]
+mesh = SubResource("BoxMesh_causewayramp")
+
+[node name="Shape" type="CollisionShape3D" parent="Lanes/CausewayRamp"]
+shape = SubResource("BoxShape3D_causewayramp")
 
 [node name="WellLane" type="MeshInstance3D" parent="Lanes"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 0.02, -9)
