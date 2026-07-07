@@ -8,6 +8,7 @@ extends Node3D
 
 const PLAYER_SCENE: PackedScene = preload("res://scenes/player.tscn")
 const TerrainScript = preload("res://scripts/terrain.gd")
+const MapAuditScript = preload("res://scripts/map_audit.gd")
 
 # Containers whose direct children get snapped onto the terrain at boot.
 const SNAP_CONTAINERS: Array[String] = [
@@ -24,6 +25,9 @@ func _ready() -> void:
 	$Sun.rotation_degrees = Vector3(-50, 30, 0)
 
 	_snap_structures_to_terrain()
+
+	if GameConfig.map_audit:
+		_run_map_audit()
 
 	multiplayer.peer_connected.connect(_on_peer_connected)
 	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
@@ -100,6 +104,13 @@ func _snap_node(body: Node3D) -> void:
 	body.position.y = ground - bottom
 	print("[FoundationAudit] %-16s ground=%6.2f base=%6.2f (moved %+.2f)"
 			% [body.name, ground, body.position.y + bottom, body.position.y - old_y])
+
+
+## The flow audit needs physics ready for its raycasts — wait two frames.
+func _run_map_audit() -> void:
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	MapAuditScript.run(self)
 
 
 ## Lowest point of the node's collision shapes, in the node's local space.

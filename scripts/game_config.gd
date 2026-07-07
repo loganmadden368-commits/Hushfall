@@ -27,6 +27,18 @@ var voice_unit_size: float = 6.0      # falloff curve: higher = carries farther
 # voice being always-on is core to the design.
 var voice_mode: String = "toggle"
 
+# --- Map flow dials (checked by the boot map audit) ---
+var walk_tier_near_max_s: float = 9.0
+var walk_tier_mid_max_s: float = 14.0
+var walk_tier_far_max_s: float = 22.0
+var walk_trip_ceiling_s: float = 25.0
+
+# Chokepoint lantern positions (see config/gameplay.cfg [lanterns]).
+var lantern_positions: Array[Vector3] = []
+
+# --- Debug ---
+var map_audit: bool = true
+
 
 func _ready() -> void:
 	_load_config()
@@ -50,4 +62,19 @@ func _load_config() -> void:
 	if voice_mode not in ["push_to_talk", "toggle", "open"]:
 		push_warning("[GameConfig] Unknown voice_mode '%s' — using 'toggle'." % voice_mode)
 		voice_mode = "toggle"
+
+	walk_tier_near_max_s = config.get_value("map", "walk_tier_near_max_s", walk_tier_near_max_s)
+	walk_tier_mid_max_s = config.get_value("map", "walk_tier_mid_max_s", walk_tier_mid_max_s)
+	walk_tier_far_max_s = config.get_value("map", "walk_tier_far_max_s", walk_tier_far_max_s)
+	walk_trip_ceiling_s = config.get_value("map", "walk_trip_ceiling_s", walk_trip_ceiling_s)
+	map_audit = config.get_value("debug", "map_audit", map_audit)
+
+	# Lantern positions come as "x,y,z|x,y,z|..."
+	lantern_positions.clear()
+	var lantern_string: String = config.get_value("lanterns", "choke_positions", "")
+	for entry in lantern_string.split("|", false):
+		var parts := entry.split(",")
+		if parts.size() == 3:
+			lantern_positions.append(Vector3(parts[0].to_float(), parts[1].to_float(), parts[2].to_float()))
+
 	print("[GameConfig] Loaded. max_players = ", max_players, ", voice_mode = ", voice_mode)

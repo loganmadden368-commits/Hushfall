@@ -98,12 +98,35 @@ Once revealed, **villagers can finally kill.** The Mimic is now hunted, but is r
 
 ---
 
-## 10. Village layout — hub & spokes
+## 10. Village layout — the harbor village (rebuilt 2026-07-02)
 
-- **Central plaza:** the bright, safe heart — bonfire, the big lantern, fireflies. Where the group instinctively clumps.
-- **4–6 spoke outbuildings** off the plaza: e.g. the well, greenhouse, bell tower, mushroom cellar, boathouse, windmill.
-- **Critical rule:** outbuildings are **out of voice range** of the plaza and of each other. Doing a task means leaving the sound of the group.
-- **Keep it tight and dense**, not sprawling. A small, well-lit, readable village beats a big one a solo dev can't fill or light.
+The literal hub-and-spokes wheel was replaced with an organic harbor village
+("Hushfall grew uphill from the water"). Functional skeleton preserved;
+geometry now governed by Appendix A doctrine and verified by the boot map
+audit. Greybox lives in `scenes/world.tscn` + `scripts/terrain.gd`
+(height(x,z) IS the terrain spec).
+
+- **Enclosed plaza** (bonfire, spawn) ringed by houses, with four gates:
+  E (east lane), N (to the Rise), W (well lane), S (south lane). Three
+  trunk lanes; every site hangs off one.
+- **Districts:** Market Lanes (NE: bent street, back alley, two breezeway
+  tunnels, two pass-through shells, the map's one baited dead-end nook);
+  the Rise (N: smooth hill, +4m crown, sheer NE faces — Bell Tower + spire);
+  West fields (well yard, post-marked field crossings, windmill lane fork);
+  Waterfront (S: shore easing into water, boardwalk, Boathouse, causeway
+  spit to the Lighthouse).
+- **Seven task sites, tiered by real walk time** (near ≤9s / mid ≤14s /
+  far ≤22s / ceiling 25s, config dials): Well & Greenhouse (near),
+  Bell Tower & Boathouse (mid), Cellar, Windmill (far), Lighthouse
+  (farthest ~21.5s — the sanctioned single-approach causeway, the
+  scariest walk in the game).
+- **Two routes per site from different gates** (Lighthouse excepted);
+  voice rules hold: every site >25m from the plaza, all pairs >28m apart
+  (closest 31.3m). Three skyline landmarks: Bell spire (N), Lighthouse
+  beacon (SE), Windmill blades (NW).
+- **Playtest watch item:** if rounds consistently end with the Lighthouse
+  as the last task, the Mimic learns to camp the causeway endgame. Likely
+  lever is task-set randomization (game-design fix, not a map fix).
 
 ---
 
@@ -238,3 +261,51 @@ govern every future map decision. Principles only — no layout was copied.
 *Applied 2026-07-02: south boardwalk loop added (P3), market back alley
 added (P3/P7), two breezeway houses (P6), dead ends cut from two to one
 baited nook (P7).*
+
+### A2 — Flow doctrine (binding acceptance criteria, adopted 2026-07-02)
+
+The principles above became measurable rules, checked by the boot-time map
+audit (`scripts/map_audit.gd`, gated by `[debug] map_audit`):
+
+- **F1 two-route rule:** every site reachable by two distinct routes
+  (different danger profiles). *Amendment 1:* shared-path measured from the
+  plaza gates, not the bonfire. *Rider R1:* the two routes depart from
+  DIFFERENT gates; audit prints departure gates and flags shared ones.
+  *Sanctioned exception:* the Lighthouse causeway is the map's one
+  single-approach site.
+- **F2 dead ends:** 3–5 total, alley/pocket only, shallow or deliberate.
+  Current: 3 (market nook = deep + baited, plaza SW pocket, windmill
+  tower corner).
+- **F3 chokepoints:** 3–6, reading as decisions. Current: 6; the three on
+  primary routes (kiosk corner, market north gate, causeway mouth) carry
+  lantern dials in `[lanterns] choke_positions`.
+- **F4 walk-time tiers** (config dials): near ≤9s, mid ≤14s, far ≤22s,
+  one-way ceiling 25s. *Amendment 3:* Lighthouse exempt from the far/near
+  ratio, governed by the ceiling only (currently 21.5s).
+- **F5 perception bands:** engineered see-but-can't-hear straightaways
+  (plaza, boardwalk 38m, market street 31m — the sanctioned F5a list per
+  *Amendment 2*) and hear-before-you-see corners in every district.
+- **F6 sightline rhythm:** no unsanctioned lane straight >25m. Flagged
+  deviations: back path (28m) and shore path (35m) — re-check at the night
+  milestone, where darkness may be the intended break.
+- **F7 landmark visibility:** raycast grid; current: Bell spire 59%,
+  Lighthouse beacon 76%, plaza glow proxy 23%, at-least-one 89%. Blind
+  pockets cluster in the NW fields — acceptable (deliberate disorientation
+  zone) pending the night-milestone re-run with real light sources
+  (*Amendment 4*).
+- **F8 pass-through shells:** Shell1 (east lane ↔ back path) and Shell5
+  (market street ↔ nook approach).
+- **F9 street-fronting:** doors face lanes; districts keep distinct
+  silhouettes (spire, blades, beacon, low market rows).
+- **F10 voice invariants:** every site >25m from plaza (min margin +3.7m,
+  the Well), all site pairs >28m (closest 31.3m). Re-verified every boot.
+- **R2:** the Well field crossing is post-marked (discoverable in the
+  dark), as is the windmill north-field route.
+- **R3:** the baited nook's mouth is covered from the market street
+  (max 13.4m line of sight); nearest lantern dial 8.9m away — nook danger
+  tunes with that lantern, never absolute.
+- **F1 note:** Cellar's two routes differ only ~5% in length (<25%
+  target) — accepted deviation: equal time, opposite danger profiles makes
+  the choice pure risk-preference.
+- **Standing flag:** when sprint lands, re-print the walk-time matrix at
+  sprint speed and re-check the 25s ceiling.
