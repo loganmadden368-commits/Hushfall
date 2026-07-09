@@ -18,6 +18,10 @@ Read both before working on gameplay. Update the production plan as phases finis
 - Phase 3 (village map + lanterns + first solo task) — in progress.
 
 ## Golden rules
+- **Verification law (design doc Appendix A3, project-wide):** a claim that
+  something works counts ONLY if a printed boot-audit/test line proves it.
+  Applies to everything — map, networking, tasks, roles, voice. Never
+  report "done" on assertion alone.
 - Build the multiplayer + proximity-voice skeleton FIRST, before any gameplay.
 - Keep all balance values (lantern density, hush rules, ghost flicker, win
   thresholds, voice ranges) in easily-editable config in `config/`, never

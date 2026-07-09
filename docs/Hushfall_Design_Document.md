@@ -329,4 +329,17 @@ A path-structure intersection (0.5m samples vs. actual collision shapes),
 B terrain conformance + slope standard, C connectivity graph (all gates +
 doors, one component), D universal footprint seating with auto-plinths.
 Rule of trust: a verification claim counts only if a printed boot-audit
-line proves it.
+line proves it. **Scope (2026-07-02): project-wide law** — networking,
+tasks, roles, and voice included, not just the map.
+
+### A4 — Style rules (binding)
+
+- **The glow rule:** the lantern-glow accent (`FFB55C` and near hues —
+  warm saturated oranges/ambers) may appear ONLY on genuine light sources
+  (lanterns, bonfire, beacon, lit windows), map-wide, forever. Warm glow
+  = light = safety must never lie. A boot-audit line scans materials for
+  near-glow hues on bodies without a light and flags violations.
+- **Window-glow watch item (night-lighting milestone):** once every house
+  window glows village-wide, dozens of windows may dilute "warm = safe."
+  Likely lever: dimmer and/or cooler window glow relative to lanterns.
+  Decide when real lighting lands.
