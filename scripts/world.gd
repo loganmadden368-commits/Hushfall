@@ -8,23 +8,22 @@ extends Node3D
 
 const PLAYER_SCENE: PackedScene = preload("res://scenes/player.tscn")
 const TerrainScript = preload("res://scripts/terrain.gd")
+const PathNetScript = preload("res://scripts/path_network.gd")
 const MapAuditScript = preload("res://scripts/map_audit.gd")
 
-# Containers whose direct children get snapped onto the terrain at boot.
-const SNAP_CONTAINERS: Array[String] = [
-	"Buildings", "PlazaRing", "MarketLanes", "WestVillage", "FieldPosts",
-]
-# Nodes that intentionally do NOT snap.
-const SNAP_SKIP: Array[String] = ["LighthouseSpit"]  # rock IN the water
-# Lane strips that keep authored transforms (tilted or on the spit deck).
-const LANE_SNAP_SKIP: Array[String] = ["EastLaneUp", "EastLaneDown", "CausewayRamp", "Jetty"]
+# Bodies that intentionally do not seat on terrain.
+const SEAT_SKIP: Array[String] = ["LighthouseSpit"]  # rock IN the water
 
 
 func _ready() -> void:
 	# Angle the sun so the greybox has readable shadows.
 	$Sun.rotation_degrees = Vector3(-50, 30, 0)
 
-	_snap_structures_to_terrain()
+	# Paths are GENERATED from path_network.gd data — the same data the
+	# audits measure, so walked geometry and audited geometry cannot drift.
+	PathNetScript.build($Lanes)
+
+	_seat_all_structures()
 
 	if GameConfig.map_audit:
 		_run_map_audit()
@@ -69,41 +68,82 @@ func _spawn_player(peer_id: int) -> void:
 	print("[World] Spawned avatar for peer ", peer_id)
 
 
-# ------------------------------------------- terrain foundation snapping ----
+# --------------------------------------------- universal terrain seating ----
 
-## Ground height including built-up surfaces (the lighthouse spit deck).
-func _ground_at(x: float, z: float) -> float:
-	if x > 59.0 and x < 69.0 and z > 44.0 and z < 66.0:
-		return 0.3  # lighthouse spit deck sits proud of the water
-	return TerrainScript.height_at(x, z)
+## Root-cause fix (2026-07-02): the old snapper sampled ONE point (the node
+## origin), so footprints straddling slopes floated at their corners while
+## reporting 0.00. Seating is now footprint-aware and UNIVERSAL (every
+## StaticBody in the world, present and future): the base is set to the
+## HIGHEST ground under any footprint corner, and where the ground varies
+## a stone plinth is generated to fill the downhill gap.
+func _seat_all_structures() -> void:
+	print("[Seating] --- footprint-aware seating (universal) ---")
+	var stack: Array = [self]
+	while not stack.is_empty():
+		var node: Node = stack.pop_back()
+		for child in node.get_children():
+			stack.append(child)
+		if node is StaticBody3D and node.name != "Terrain" \
+				and not node.has_meta("no_seat") and not (node.name in SEAT_SKIP):
+			_seat_body(node)
 
 
-## Every structure's base is set EXACTLY onto the ground under it, and the
-## result is printed as the foundation audit — proof regenerates every boot.
-func _snap_structures_to_terrain() -> void:
-	print("[FoundationAudit] --- building base-Y vs ground-Y (delta = drift fixed) ---")
-	for container_name in SNAP_CONTAINERS:
-		for node in get_node(container_name).get_children():
-			if node.name in SNAP_SKIP:
-				print("[FoundationAudit] %-16s SKIPPED (intentional: in water)" % node.name)
+func _seat_body(body: Node3D) -> void:
+	var bounds := _collision_bounds(body)
+	if bounds.is_empty():
+		return
+	var min_local: Vector3 = bounds[0]
+	var max_local: Vector3 = bounds[1]
+	var grounds: Array[float] = []
+	for corner_local in [
+			Vector3(min_local.x, min_local.y, min_local.z),
+			Vector3(max_local.x, min_local.y, min_local.z),
+			Vector3(min_local.x, min_local.y, max_local.z),
+			Vector3(max_local.x, min_local.y, max_local.z)]:
+		var world_corner: Vector3 = body.global_transform * corner_local
+		grounds.append(PathNetScript.ground_at(world_corner.x, world_corner.z))
+	var highest: float = grounds.max()
+	var spread: float = highest - grounds.min()
+	# Seat the base on the highest corner ground (never floats uphill).
+	var base_world: float = (body.global_transform * min_local).y
+	body.position.y += highest - base_world
+	# Fill the downhill gap with a plinth so no corner hangs in air.
+	if spread > 0.08:
+		var plinth := MeshInstance3D.new()
+		plinth.name = "Plinth"
+		var box := BoxMesh.new()
+		box.size = Vector3(max_local.x - min_local.x, spread + 0.35, max_local.z - min_local.z)
+		var material := StandardMaterial3D.new()
+		material.albedo_color = Color(0.42, 0.41, 0.38)
+		box.material = material
+		plinth.mesh = box
+		plinth.position = Vector3(
+			(min_local.x + max_local.x) / 2.0,
+			min_local.y + 0.05 - box.size.y / 2.0,
+			(min_local.z + max_local.z) / 2.0)
+		body.add_child(plinth)
+		body.set_meta("plinth", true)
+	print("[Seating] %-18s base -> %6.2f (ground spread %.2f%s)"
+			% [body.name, highest, spread, ", plinth added" if spread > 0.08 else ""])
+
+
+func _collision_bounds(body: Node3D) -> Array:
+	var min_local := Vector3(1e9, 1e9, 1e9)
+	var max_local := Vector3(-1e9, -1e9, -1e9)
+	var found := false
+	for child in body.get_children():
+		if child is CollisionShape3D and child.shape != null:
+			var half := Vector3.ZERO
+			if child.shape is BoxShape3D:
+				half = child.shape.size / 2.0
+			elif child.shape is CylinderShape3D:
+				half = Vector3(child.shape.radius, child.shape.height / 2.0, child.shape.radius)
+			else:
 				continue
-			_snap_node(node)
-	# Lane strips are visual ground markings: they float 2cm above ground.
-	for lane in $Lanes.get_children():
-		if lane.name in LANE_SNAP_SKIP:
-			continue
-		lane.position.y = _ground_at(lane.position.x, lane.position.z) + 0.02
-	# Plaza furniture sits on the flat core but snaps for completeness.
-	_snap_node($Bonfire)
-
-
-func _snap_node(body: Node3D) -> void:
-	var ground := _ground_at(body.position.x, body.position.z)
-	var bottom := _bottom_offset(body)
-	var old_y := body.position.y
-	body.position.y = ground - bottom
-	print("[FoundationAudit] %-16s ground=%6.2f base=%6.2f (moved %+.2f)"
-			% [body.name, ground, body.position.y + bottom, body.position.y - old_y])
+			found = true
+			min_local = min_local.min(child.position - half)
+			max_local = max_local.max(child.position + half)
+	return [min_local, max_local] if found else []
 
 
 ## The flow audit needs physics ready for its raycasts — wait two frames.
@@ -111,21 +151,3 @@ func _run_map_audit() -> void:
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 	MapAuditScript.run(self)
-
-
-## Lowest point of the node's collision shapes, in the node's local space.
-## (Box roots are often centered; building scenes are based at y=0 — this
-## handles both without per-node bookkeeping.)
-func _bottom_offset(body: Node3D) -> float:
-	var lowest: float = 1e9
-	for child in body.get_children():
-		if child is CollisionShape3D and child.shape != null:
-			var half: float = 0.0
-			if child.shape is BoxShape3D:
-				half = child.shape.size.y / 2.0
-			elif child.shape is CylinderShape3D:
-				half = child.shape.height / 2.0
-			else:
-				continue
-			lowest = minf(lowest, child.position.y - half)
-	return lowest if lowest < 1e8 else 0.0

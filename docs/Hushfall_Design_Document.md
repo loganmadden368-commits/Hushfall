@@ -100,6 +100,9 @@ Once revealed, **villagers can finally kill.** The Mimic is now hunted, but is r
 
 ## 10. Village layout — the harbor village (rebuilt 2026-07-02)
 
+> **Compass convention (binding): north = −Z, east = +X.** All walk-test
+> directions, coordinates, and audit output use this mapping.
+
 The literal hub-and-spokes wheel was replaced with an organic harbor village
 ("Hushfall grew uphill from the water"). Functional skeleton preserved;
 geometry now governed by Appendix A doctrine and verified by the boot map
@@ -309,3 +312,21 @@ audit (`scripts/map_audit.gd`, gated by `[debug] map_audit`):
   the choice pure risk-preference.
 - **Standing flag:** when sprint lands, re-print the walk-time matrix at
   sprint speed and re-check the 25s ceiling.
+
+### A3 — Audit integrity (root-cause postmortem, 2026-07-02)
+
+A walk-test found floating structures, paths through buildings, and a site
+with no path — all while audits reported passing. Causes, recorded so the
+failure mode stays dead:
+1. The flow audit validated AUTHORED ROUTE DATA, not scene geometry — a
+   route could pass with zero paving (the Bell Tower did).
+2. Path clearance was manual coordinate arithmetic presented as an audit.
+3. The foundation audit sampled one point (the node origin); footprints
+   straddling slopes floated at their corners while printing 0.00.
+Remedy (audit v2): paths are GENERATED from `scripts/path_network.gd` —
+the audited data and the walked geometry are the same object. Boot audits:
+A path-structure intersection (0.5m samples vs. actual collision shapes),
+B terrain conformance + slope standard, C connectivity graph (all gates +
+doors, one component), D universal footprint seating with auto-plinths.
+Rule of trust: a verification claim counts only if a printed boot-audit
+line proves it.
