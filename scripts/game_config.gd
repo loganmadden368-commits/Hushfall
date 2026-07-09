@@ -36,6 +36,11 @@ var walk_trip_ceiling_s: float = 25.0
 # Chokepoint lantern positions (see config/gameplay.cfg [lanterns]).
 var lantern_positions: Array[Vector3] = []
 
+# --- Style dials (Part 3 stylized blockout) ---
+var palette: Dictionary = {}          # name -> Color, from [style] hex dials
+var night_preview: bool = true
+var dressing_density: String = "medium"
+
 # --- Debug ---
 var map_audit: bool = true
 
@@ -68,6 +73,15 @@ func _load_config() -> void:
 	walk_tier_far_max_s = config.get_value("map", "walk_tier_far_max_s", walk_tier_far_max_s)
 	walk_trip_ceiling_s = config.get_value("map", "walk_trip_ceiling_s", walk_trip_ceiling_s)
 	map_audit = config.get_value("debug", "map_audit", map_audit)
+
+	# Style palette: every key in [style] holding a 6-digit hex string.
+	night_preview = config.get_value("style", "night_preview", night_preview)
+	dressing_density = config.get_value("style", "dressing_density", dressing_density)
+	if config.has_section("style"):
+		for key in config.get_section_keys("style"):
+			var value = config.get_value("style", key)
+			if value is String and value.is_valid_html_color():
+				palette[key] = Color(value)
 
 	# Lantern positions come as "x,y,z|x,y,z|..."
 	lantern_positions.clear()

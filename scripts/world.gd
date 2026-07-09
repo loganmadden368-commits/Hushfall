@@ -10,6 +10,7 @@ const PLAYER_SCENE: PackedScene = preload("res://scenes/player.tscn")
 const TerrainScript = preload("res://scripts/terrain.gd")
 const PathNetScript = preload("res://scripts/path_network.gd")
 const MapAuditScript = preload("res://scripts/map_audit.gd")
+const PlazaDressingScript = preload("res://scripts/plaza_dressing.gd")
 
 # Bodies that intentionally do not seat on terrain.
 const SEAT_SKIP: Array[String] = ["LighthouseSpit"]  # rock IN the water
@@ -24,6 +25,9 @@ func _ready() -> void:
 	PathNetScript.build($Lanes)
 
 	_seat_all_structures()
+
+	# Style-guide beauty corner (Part 3A) — plaza only until approved.
+	PlazaDressingScript.build(self)
 
 	if GameConfig.map_audit:
 		_run_map_audit()

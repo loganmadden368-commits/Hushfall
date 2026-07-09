@@ -190,7 +190,9 @@ static func _audit_seating(world: Node3D) -> void:
 			stack.append(child)
 		if not (node is StaticBody3D) or node.name == "Terrain":
 			continue
-		if node.has_meta("no_seat"):
+		# no_seat only exempts bodies from the SEATER; the audit still checks
+		# them. Only water/ramp infrastructure is excluded here.
+		if String(node.name) in ["LighthouseSpit", "CausewayWedge"]:
 			continue
 		var corners: Array = _footprint_corners(node)
 		if corners.is_empty():
