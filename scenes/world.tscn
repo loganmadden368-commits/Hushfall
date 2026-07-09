@@ -38,10 +38,10 @@ albedo_color = Color(0.4, 0.38, 0.34, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_spit"]
 material = SubResource("Material_spit")
-size = Vector3(10, 0.8, 22)
+size = Vector3(10, 0.8, 21)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_spit"]
-size = Vector3(10, 0.8, 22)
+size = Vector3(10, 0.8, 21)
 
 [sub_resource type="BoxMesh" id="BoxMesh_causewayramp"]
 material = SubResource("Material_spit")
@@ -290,7 +290,7 @@ transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 37, 0, 5)
 building_name = "Greenhouse"
 
 [node name="BellTower" parent="Buildings" instance=ExtResource("2_building")]
-transform = Transform3D(-0.936, 0, 0.351, 0, 1, 0, -0.351, 0, -0.936, 18, 4, -48)
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 18, 4, -54)
 building_name = "Bell Tower"
 
 [node name="MushroomCellar" parent="Buildings" instance=ExtResource("2_building")]
@@ -306,7 +306,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 0, 44)
 building_name = "Boathouse"
 
 [node name="BellSpire" type="StaticBody3D" parent="Buildings"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28, 10, -56)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 26, 10, -60)
 
 [node name="Mesh" type="MeshInstance3D" parent="Buildings/BellSpire"]
 mesh = SubResource("BoxMesh_tower")
@@ -332,7 +332,7 @@ transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0, 4, 2.5)
 mesh = SubResource("BoxMesh_blade")
 
 [node name="LighthouseSpit" type="StaticBody3D" parent="Buildings"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 64, -0.1, 55)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 64, -0.1, 55.5)
 
 [node name="Mesh" type="MeshInstance3D" parent="Buildings/LighthouseSpit"]
 mesh = SubResource("BoxMesh_spit")
@@ -361,123 +361,6 @@ billboard = 1
 text = "Lighthouse"
 
 [node name="Lanes" type="Node3D" parent="."]
-
-[node name="EastLaneFlatW" type="MeshInstance3D" parent="Lanes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 0.02, 0)
-mesh = SubResource("BoxMesh_lane_flat2")
-
-[node name="EastLaneUp" type="MeshInstance3D" parent="Lanes"]
-transform = Transform3D(0.9701, -0.2425, 0, 0.2425, 0.9701, 0, 0, 0, 1, 18, 1.02, 0)
-mesh = SubResource("BoxMesh_lane_humpseg")
-
-[node name="EastLaneDown" type="MeshInstance3D" parent="Lanes"]
-transform = Transform3D(0.9701, 0.2425, 0, -0.2425, 0.9701, 0, 0, 0, 1, 26, 1.02, 0)
-mesh = SubResource("BoxMesh_lane_humpseg")
-
-[node name="EastLaneFlatE" type="MeshInstance3D" parent="Lanes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0.02, 0)
-mesh = SubResource("BoxMesh_lane_flat2")
-
-[node name="MarketBend" type="MeshInstance3D" parent="Lanes"]
-transform = Transform3D(0.7071, 0, 0.7071, 0, 1, 0, -0.7071, 0, 0.7071, 42, 0.02, -9)
-mesh = SubResource("BoxMesh_lane_diag")
-
-[node name="KioskJunction" type="MeshInstance3D" parent="Lanes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33, 0.02, -1)
-mesh = SubResource("BoxMesh_pad6")
-
-[node name="MarketStreet" type="MeshInstance3D" parent="Lanes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 46, 0.02, -27.5)
-mesh = SubResource("BoxMesh_lane_north")
-
-[node name="CellarLanding" type="MeshInstance3D" parent="Lanes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 46, 0.02, -45)
-mesh = SubResource("BoxMesh_pad4")
-
-[node name="UpperLaneA" type="MeshInstance3D" parent="Lanes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 0.02, -30)
-mesh = SubResource("BoxMesh_lane_upperA")
-
-[node name="UpperLaneB" type="MeshInstance3D" parent="Lanes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27, 0.02, -28)
-mesh = SubResource("BoxMesh_lane_upperB")
-
-[node name="KinkPad" type="MeshInstance3D" parent="Lanes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35, 0.02, -31)
-mesh = SubResource("BoxMesh_pad4")
-
-[node name="NorthGateLink" type="MeshInstance3D" parent="Lanes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 39, 0.02, -33.5)
-mesh = SubResource("BoxMesh_lane_northlink")
-
-[node name="SouthLaneA" type="MeshInstance3D" parent="Lanes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0.02, 21)
-mesh = SubResource("BoxMesh_lane_southA")
-
-[node name="SouthLaneB" type="MeshInstance3D" parent="Lanes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0.02, 34)
-mesh = SubResource("BoxMesh_lane_southB")
-
-[node name="BoathouseLanding" type="MeshInstance3D" parent="Lanes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0.02, 38.5)
-mesh = SubResource("BoxMesh_pad4")
-
-[node name="BoathouseFront" type="MeshInstance3D" parent="Lanes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19, 0.02, 37.5)
-mesh = SubResource("BoxMesh_bhfront")
-
-[node name="ElbowPad" type="MeshInstance3D" parent="Lanes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 0.02, 41.5)
-mesh = SubResource("BoxMesh_pad4")
-
-[node name="BackPath" type="MeshInstance3D" parent="Lanes"]
-transform = Transform3D(0.7071, 0, -0.7071, 0, 1, 0, 0.7071, 0, 0.7071, 20.6, 0.02, 14.6)
-mesh = SubResource("BoxMesh_lane_back")
-
-[node name="ShorePath" type="MeshInstance3D" parent="Lanes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 29, 0.02, 23.5)
-mesh = SubResource("BoxMesh_shorepath")
-
-[node name="Boardwalk" type="MeshInstance3D" parent="Lanes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 43, 0.02, 43)
-mesh = SubResource("BoxMesh_boardwalk")
-
-[node name="Jetty" type="MeshInstance3D" parent="Lanes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 64, 0.32, 54)
-mesh = SubResource("BoxMesh_jetty")
-
-[node name="CausewayRamp" type="StaticBody3D" parent="Lanes"]
-transform = Transform3D(1, 0, 0, 0, 0.997, -0.0769, 0, 0.0769, 0.997, 63.5, 0.16, 45.8)
-
-[node name="Mesh" type="MeshInstance3D" parent="Lanes/CausewayRamp"]
-mesh = SubResource("BoxMesh_causewayramp")
-
-[node name="Shape" type="CollisionShape3D" parent="Lanes/CausewayRamp"]
-shape = SubResource("BoxShape3D_causewayramp")
-
-[node name="WellLane" type="MeshInstance3D" parent="Lanes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 0.02, -9)
-mesh = SubResource("BoxMesh_lane_well")
-
-[node name="WellYard" type="MeshInstance3D" parent="Lanes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23.5, 0.02, -15)
-mesh = SubResource("BoxMesh_wellyard")
-
-[node name="WindmillDiag" type="MeshInstance3D" parent="Lanes"]
-transform = Transform3D(0.7071, 0, -0.7071, 0, 1, 0, 0.7071, 0, 0.7071, -33, 0.02, -33)
-mesh = SubResource("BoxMesh_lane_nw")
-
-[node name="WindmillWest" type="MeshInstance3D" parent="Lanes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -38, 0.02, -22)
-mesh = SubResource("BoxMesh_lane_wmwest")
-
-[node name="WindmillNorth" type="MeshInstance3D" parent="Lanes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -52, 0.02, -34)
-mesh = SubResource("BoxMesh_lane_wmnorth")
-
-[node name="WindmillLanding" type="MeshInstance3D" parent="Lanes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.5, 0.02, -51)
-mesh = SubResource("BoxMesh_pad5")
 
 [node name="MarketLanes" type="Node3D" parent="."]
 
@@ -672,7 +555,7 @@ mesh = SubResource("BoxMesh_houseB")
 shape = SubResource("BoxShape3D_houseB")
 
 [node name="CornerKiosk" type="StaticBody3D" parent="MarketLanes"]
-transform = Transform3D(0.7071, 0, 0.7071, 0, 1, 0, -0.7071, 0, 0.7071, 32, 1.6, -10)
+transform = Transform3D(0.7071, 0, 0.7071, 0, 1, 0, -0.7071, 0, 0.7071, 28, 1.6, -8)
 
 [node name="Mesh" type="MeshInstance3D" parent="MarketLanes/CornerKiosk"]
 mesh = SubResource("BoxMesh_houseB")
@@ -811,7 +694,7 @@ mesh = SubResource("BoxMesh_houseB")
 shape = SubResource("BoxShape3D_houseB")
 
 [node name="Barn1" type="StaticBody3D" parent="WestVillage"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -44, 1.6, -38)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36, 1.6, -44)
 
 [node name="Mesh" type="MeshInstance3D" parent="WestVillage/Barn1"]
 mesh = SubResource("BoxMesh_houseB")
@@ -827,125 +710,6 @@ mesh = SubResource("BoxMesh_houseB")
 
 [node name="Shape" type="CollisionShape3D" parent="WestVillage/Barn2"]
 shape = SubResource("BoxShape3D_houseB")
-
-[node name="FieldPosts" type="Node3D" parent="."]
-
-[node name="WellPost1" type="StaticBody3D" parent="FieldPosts"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0.6, -20.1)
-
-[node name="Mesh" type="MeshInstance3D" parent="FieldPosts/WellPost1"]
-mesh = SubResource("BoxMesh_post")
-
-[node name="Shape" type="CollisionShape3D" parent="FieldPosts/WellPost1"]
-shape = SubResource("BoxShape3D_post")
-
-[node name="WellPost2" type="StaticBody3D" parent="FieldPosts"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0.6, -20.3)
-
-[node name="Mesh" type="MeshInstance3D" parent="FieldPosts/WellPost2"]
-mesh = SubResource("BoxMesh_post")
-
-[node name="Shape" type="CollisionShape3D" parent="FieldPosts/WellPost2"]
-shape = SubResource("BoxShape3D_post")
-
-[node name="WellPost3" type="StaticBody3D" parent="FieldPosts"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0.6, -20.5)
-
-[node name="Mesh" type="MeshInstance3D" parent="FieldPosts/WellPost3"]
-mesh = SubResource("BoxMesh_post")
-
-[node name="Shape" type="CollisionShape3D" parent="FieldPosts/WellPost3"]
-shape = SubResource("BoxShape3D_post")
-
-[node name="WellPost4" type="StaticBody3D" parent="FieldPosts"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 0.6, -20.7)
-
-[node name="Mesh" type="MeshInstance3D" parent="FieldPosts/WellPost4"]
-mesh = SubResource("BoxMesh_post")
-
-[node name="Shape" type="CollisionShape3D" parent="FieldPosts/WellPost4"]
-shape = SubResource("BoxShape3D_post")
-
-[node name="WellPost5" type="StaticBody3D" parent="FieldPosts"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 0.6, -20.9)
-
-[node name="Mesh" type="MeshInstance3D" parent="FieldPosts/WellPost5"]
-mesh = SubResource("BoxMesh_post")
-
-[node name="Shape" type="CollisionShape3D" parent="FieldPosts/WellPost5"]
-shape = SubResource("BoxShape3D_post")
-
-[node name="WellPost6" type="StaticBody3D" parent="FieldPosts"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -28, 0.6, -21)
-
-[node name="Mesh" type="MeshInstance3D" parent="FieldPosts/WellPost6"]
-mesh = SubResource("BoxMesh_post")
-
-[node name="Shape" type="CollisionShape3D" parent="FieldPosts/WellPost6"]
-shape = SubResource("BoxShape3D_post")
-
-[node name="FieldPost1" type="StaticBody3D" parent="FieldPosts"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0.6, -30)
-
-[node name="Mesh" type="MeshInstance3D" parent="FieldPosts/FieldPost1"]
-mesh = SubResource("BoxMesh_post")
-
-[node name="Shape" type="CollisionShape3D" parent="FieldPosts/FieldPost1"]
-shape = SubResource("BoxShape3D_post")
-
-[node name="FieldPost2" type="StaticBody3D" parent="FieldPosts"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 0.6, -30)
-
-[node name="Mesh" type="MeshInstance3D" parent="FieldPosts/FieldPost2"]
-mesh = SubResource("BoxMesh_post")
-
-[node name="Shape" type="CollisionShape3D" parent="FieldPosts/FieldPost2"]
-shape = SubResource("BoxShape3D_post")
-
-[node name="FieldPost3" type="StaticBody3D" parent="FieldPosts"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 0.6, -30)
-
-[node name="Mesh" type="MeshInstance3D" parent="FieldPosts/FieldPost3"]
-mesh = SubResource("BoxMesh_post")
-
-[node name="Shape" type="CollisionShape3D" parent="FieldPosts/FieldPost3"]
-shape = SubResource("BoxShape3D_post")
-
-[node name="FieldPost4" type="StaticBody3D" parent="FieldPosts"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 0.6, -30)
-
-[node name="Mesh" type="MeshInstance3D" parent="FieldPosts/FieldPost4"]
-mesh = SubResource("BoxMesh_post")
-
-[node name="Shape" type="CollisionShape3D" parent="FieldPosts/FieldPost4"]
-shape = SubResource("BoxShape3D_post")
-
-[node name="FieldPost5" type="StaticBody3D" parent="FieldPosts"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -38, 0.6, -30)
-
-[node name="Mesh" type="MeshInstance3D" parent="FieldPosts/FieldPost5"]
-mesh = SubResource("BoxMesh_post")
-
-[node name="Shape" type="CollisionShape3D" parent="FieldPosts/FieldPost5"]
-shape = SubResource("BoxShape3D_post")
-
-[node name="FieldPost6" type="StaticBody3D" parent="FieldPosts"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -44, 0.6, -30)
-
-[node name="Mesh" type="MeshInstance3D" parent="FieldPosts/FieldPost6"]
-mesh = SubResource("BoxMesh_post")
-
-[node name="Shape" type="CollisionShape3D" parent="FieldPosts/FieldPost6"]
-shape = SubResource("BoxShape3D_post")
-
-[node name="FieldPost7" type="StaticBody3D" parent="FieldPosts"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48, 0.6, -30)
-
-[node name="Mesh" type="MeshInstance3D" parent="FieldPosts/FieldPost7"]
-mesh = SubResource("BoxMesh_post")
-
-[node name="Shape" type="CollisionShape3D" parent="FieldPosts/FieldPost7"]
-shape = SubResource("BoxShape3D_post")
 
 [node name="Players" type="Node3D" parent="."]
 
