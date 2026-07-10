@@ -1,20 +1,14 @@
 extends RefCounted
-## The path network — SINGLE SOURCE OF TRUTH for every route in the village.
-##
-## Root-cause lesson (2026-07-02): the old flow audit validated hand-typed
-## route data while the scene held separately hand-placed strips; the two
-## drifted and a site shipped with no path at all. Now the strips are
-## GENERATED from this data, so the audited network and the walked network
-## are the same object by construction.
-##
+## The path network — SINGLE SOURCE OF TRUTH for every route.
 ## Compass: north = -Z, east = +X.
 ##
-## - PAVED paths become terrain-conformant ribbon meshes (visual only, no
-##   collision — the terrain itself is the walking surface).
-## - FIELD routes stay unpaved by design (R2) but get generated marker
-##   posts and are fully audited like paved paths.
-## - ground_at() includes built surfaces (lighthouse spit deck, causeway
-##   wedge), so paths, seating, and audits all agree on "the ground".
+## v3 (perception pass): ground_at() now returns the RENDERED terrain
+## mesh height (terrain.mesh_height_at), not the smooth analytic function
+## — the gap between those two was why paths sank into slopes. Trunk
+## paths extend INSIDE the plaza disc (r=12) so paving physically reaches
+## the square. Field routes get worn strips + post-and-rail fencing so
+## they read as routes, not scattered sticks. The causeway is now a
+## wooden gangway+pier built by pier_builder.gd.
 
 const TerrainScript = preload("res://scripts/terrain.gd")
 
@@ -37,126 +31,162 @@ const DOORS: Dictionary = {
 	"Shell1 S": Vector2(22, 12.6),
 }
 
-# name: [width, [points...]]  (paved ribbons)
+# name: [width, terminal structure node name (or ""), [points...]]
+# Trunks begin at radius 10 — INSIDE the plaza disc — per plaza continuity.
 const PATHS: Dictionary = {
-	"East Lane": [3.5, [Vector2(13, 0), Vector2(19, 0), Vector2(25, 0), Vector2(29, 2), Vector2(30.5, 5)]],
-	"Market Route": [3.5, [Vector2(29, 2), Vector2(33, -2), Vector2(38.5, -6.5), Vector2(45, -12), Vector2(46, -20), Vector2(46, -42), Vector2(45.8, -45.4)]],
-	"Back Path": [2.5, [Vector2(4, 16), Vector2(6, 24), Vector2(14, 27), Vector2(22, 20), Vector2(28, 13), Vector2(30.5, 5)]],
-	"Shell Cut": [2.0, [Vector2(22, 0.5), Vector2(22, 3.4), Vector2(22, 12.6), Vector2(24.5, 15.5)]],
-	"Shore Path": [2.5, [Vector2(28, 13), Vector2(28.5, 24), Vector2(27, 36), Vector2(26, 42.7)]],
-	"Well Lane": [3.5, [Vector2(-15, -6), Vector2(-20, -9), Vector2(-24.6, -14)]],
-	"Windmill Diagonal": [2.5, [Vector2(-20, -9), Vector2(-22, -18), Vector2(-27, -28), Vector2(-40, -40), Vector2(-46, -48), Vector2(-48, -53.6)]],
-	"North Trunk": [3.5, [Vector2(0, -15), Vector2(4, -22), Vector2(8, -30), Vector2(12, -38), Vector2(15, -44), Vector2(18, -48.4)]],
-	"Bell West Route": [2.5, [Vector2(-15, -6), Vector2(-21, -12), Vector2(-19, -22), Vector2(-12, -31), Vector2(-2, -42), Vector2(6, -50), Vector2(11, -49), Vector2(15, -48.5), Vector2(17.5, -48.4)]],
-	"Cellar Upper Route": [2.5, [Vector2(0, -15), Vector2(6, -24), Vector2(14, -30.5), Vector2(26, -32), Vector2(34, -32.5), Vector2(41, -34.5), Vector2(45, -38), Vector2(45, -43), Vector2(45.8, -45.4)]],
-	"South Trunk": [3.5, [Vector2(4, 16), Vector2(6, 24), Vector2(8, 32), Vector2(12, 37), Vector2(15.5, 38.6)]],
-	"Waterfront": [2.5, [Vector2(12, 37), Vector2(18, 35), Vector2(24, 38), Vector2(26, 43), Vector2(32, 43.2), Vector2(60, 43.2), Vector2(63.5, 44.5), Vector2(63.5, 48.5), Vector2(64, 50.5), Vector2(64, 56.6)]],
-	"Back Alley": [2.0, [Vector2(34, -3.5), Vector2(32.8, -10), Vector2(32.8, -27), Vector2(34, -31.8)]],
-	"Market Connector": [2.0, [Vector2(32.8, -21.3), Vector2(40, -21.3), Vector2(45.5, -20.5)]],
+	"East Lane": [3.5, "Greenhouse", [Vector2(10, 0), Vector2(13, 0), Vector2(19, 0), Vector2(25, 0), Vector2(29, 2), Vector2(30.5, 5)]],
+	"Market Route": [3.5, "", [Vector2(29, 2), Vector2(31, -4), Vector2(38.5, -7), Vector2(45, -11.5), Vector2(45.5, -20), Vector2(45.5, -38)]],
+	"Cellar Approach": [2.5, "MushroomCellar", [Vector2(45.5, -38), Vector2(44.6, -41), Vector2(45.8, -45.4)]],
+	"Back Path": [2.5, "Greenhouse", [Vector2(2.4, 9.7), Vector2(4, 16), Vector2(6, 24), Vector2(14, 28), Vector2(23, 21), Vector2(28, 13), Vector2(30.5, 5)]],
+	"Shell Cut": [2.0, "Shell1", [Vector2(22, 0.5), Vector2(22, 3.4), Vector2(22, 12.6), Vector2(24.3, 16.3)]],
+	"Shore Path": [2.5, "", [Vector2(28, 13), Vector2(28.5, 24), Vector2(27, 36), Vector2(26, 42.7)]],
+	"Well Lane": [3.5, "Well", [Vector2(-9.3, -3.7), Vector2(-15, -6), Vector2(-20, -9), Vector2(-24.6, -14)]],
+	"Windmill Diagonal": [2.5, "Windmill", [Vector2(-20, -9), Vector2(-22, -18), Vector2(-27, -28), Vector2(-40, -40), Vector2(-46, -48), Vector2(-48, -53.6)]],
+	"North Trunk": [3.5, "BellTower", [Vector2(0, -10), Vector2(0, -15), Vector2(4, -22), Vector2(8, -30), Vector2(12, -38), Vector2(15, -44), Vector2(18, -48.4)]],
+	"Bell West Route": [2.5, "BellTower", [Vector2(-15, -6), Vector2(-21, -12), Vector2(-19, -22), Vector2(-12, -31), Vector2(-2, -42), Vector2(6, -50), Vector2(10, -47.5), Vector2(15, -47.3), Vector2(17.8, -48.3)]],
+	"Cellar Upper Route": [2.5, "", [Vector2(0, -15), Vector2(6, -24), Vector2(14, -30.5), Vector2(26, -32), Vector2(34, -32.5), Vector2(41.5, -34.5), Vector2(45.5, -38)]],
+	"South Trunk": [3.5, "", [Vector2(2.4, 9.7), Vector2(4, 16), Vector2(6, 24), Vector2(8, 32), Vector2(12, 37)]],
+	"Boathouse Approach": [2.0, "Boathouse", [Vector2(12, 37), Vector2(15.5, 38.6)]],
+	"Waterfront": [2.5, "Lighthouse", [Vector2(12, 37), Vector2(18, 35), Vector2(24, 38), Vector2(26, 43), Vector2(32, 43.2), Vector2(60, 43.2), Vector2(63, 44.4), Vector2(64, 46), Vector2(64, 56.6)]],
+	"Back Alley": [2.0, "", [Vector2(34, -3.5), Vector2(32.8, -10), Vector2(32.8, -27), Vector2(33.5, -31.5)]],
+	"Market Connector": [1.6, "", [Vector2(32.8, -21.7), Vector2(42.8, -21.7), Vector2(45.5, -20.5)]],
 }
 
-# Unpaved, post-marked field routes (R2): audited, not ribboned.
+# Unpaved-but-WORN field routes (R2): narrow worn strip + fence line.
 const FIELD_ROUTES: Dictionary = {
-	"Well Crossing": [Vector2(0, -15), Vector2(-6, -19), Vector2(-12, -20.5), Vector2(-22, -20), Vector2(-24.5, -16), Vector2(-24.6, -14)],
+	"Well Crossing": [Vector2(0, -15), Vector2(-6, -19), Vector2(-12, -20.5), Vector2(-22, -20), Vector2(-23.5, -17), Vector2(-24.6, -14.2)],
 	"Windmill Field": [Vector2(0, -15), Vector2(-4, -22), Vector2(-8, -30), Vector2(-48, -30), Vector2(-52, -34), Vector2(-52, -46), Vector2(-50, -50), Vector2(-48, -53.6)],
 }
 
-# Built walking surfaces that override raw terrain height.
-const SPIT_RECT := Rect2(59.5, 45.0, 9.0, 21.0)   # x, z, w, d -> deck 0.3
-const WEDGE_RECT := Rect2(62.0, 43.0, 3.0, 5.0)    # causeway ramp up the spit
+# Pier walking surfaces (built by pier_builder.gd from these SAME numbers;
+# the capsule walker + assembly audit verify the physical result).
+const GANGWAY_RECT := Rect2(62.5, 46.0, 3.0, 6.0)   # shore ramp up
+const DECK_RECT := Rect2(62.5, 52.0, 3.0, 12.5)     # deck run south
+const PLATFORM_RECT := Rect2(60.5, 57.0, 7.0, 7.0)  # lighthouse platform
+const DECK_TOP: float = 0.55
 
 
 static func ground_at(x: float, z: float) -> float:
-	if WEDGE_RECT.has_point(Vector2(x, z)):
-		var t: float = clampf((z - WEDGE_RECT.position.y) / WEDGE_RECT.size.y, 0.0, 1.0)
-		return lerpf(-0.29, 0.31, t)
-	if SPIT_RECT.has_point(Vector2(x, z)):
-		return 0.3
-	return TerrainScript.height_at(x, z)
+	var p := Vector2(x, z)
+	if PLATFORM_RECT.has_point(p) or DECK_RECT.has_point(p):
+		return DECK_TOP
+	if GANGWAY_RECT.has_point(p):
+		var t: float = clampf((z - GANGWAY_RECT.position.y) / GANGWAY_RECT.size.y, 0.0, 1.0)
+		return lerpf(TerrainScript.mesh_height_at(x, GANGWAY_RECT.position.y - 0.3), DECK_TOP, t)
+	return TerrainScript.mesh_height_at(x, z)
 
 
-## Generate ribbons, causeway wedge, and field-route posts under `lanes`.
+## Generate ribbons, worn field strips, fences, and marker posts.
 static func build(lanes: Node3D) -> void:
 	for child in lanes.get_children():
 		child.queue_free()
 
 	var path_material := StandardMaterial3D.new()
-	path_material.albedo_color = Color(0.54, 0.45, 0.33)
+	path_material.albedo_color = Color("8A7355")
 	path_material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var worn_material := StandardMaterial3D.new()
+	worn_material.albedo_color = Color("6E5F49")
+	worn_material.cull_mode = BaseMaterial3D.CULL_DISABLED
 
 	for path_name in PATHS:
-		var width: float = PATHS[path_name][0]
-		var points: Array = PATHS[path_name][1]
 		var mesh_instance := MeshInstance3D.new()
 		mesh_instance.name = path_name.replace(" ", "")
-		mesh_instance.mesh = _ribbon_mesh(points, width)
+		mesh_instance.mesh = _ribbon_mesh(PATHS[path_name][2], PATHS[path_name][0])
 		mesh_instance.material_override = path_material
 		lanes.add_child(mesh_instance)
 
-	# Physical causeway wedge: terrain-to-deck ramp with collision.
-	var wedge := StaticBody3D.new()
-	wedge.name = "CausewayWedge"
-	wedge.set_meta("no_seat", true)
-	var wedge_mesh := BoxMesh.new()
-	wedge_mesh.size = Vector3(3, 0.12, 5.06)
-	var wedge_material := StandardMaterial3D.new()
-	wedge_material.albedo_color = Color(0.4, 0.38, 0.34)
-	wedge_mesh.material = wedge_material
-	var wedge_shape := BoxShape3D.new()
-	wedge_shape.size = wedge_mesh.size
-	var wedge_mi := MeshInstance3D.new()
-	wedge_mi.mesh = wedge_mesh
-	var wedge_cs := CollisionShape3D.new()
-	wedge_cs.shape = wedge_shape
-	wedge.add_child(wedge_mi)
-	wedge.add_child(wedge_cs)
-	# Tilt: south (+z) end rises 0.6 over ~5m (~6.8 deg).
-	wedge.transform = Transform3D(
-		Vector3(1, 0, 0), Vector3(0, 0.993, 0.117), Vector3(0, -0.117, 0.993),
-		Vector3(63.5, 0.01, 45.5))
-	lanes.add_child(wedge)
+	# Worn strips make field routes legible as ROUTES (W1).
+	for route_name in FIELD_ROUTES:
+		var strip := MeshInstance3D.new()
+		strip.name = route_name.replace(" ", "") + "Worn"
+		strip.mesh = _ribbon_mesh(FIELD_ROUTES[route_name], 1.6)
+		strip.material_override = worn_material
+		lanes.add_child(strip)
+		_build_fence(lanes, route_name, FIELD_ROUTES[route_name])
 
-	# Field-route marker posts, evenly spaced (R2 legibility).
+
+## Post-and-rail fence along ONE side of a field route (offset 1.5m).
+static func _build_fence(lanes: Node3D, route_name: String, points: Array) -> void:
+	var wood := StandardMaterial3D.new()
+	wood.albedo_color = Color("7A5C3E")
 	var post_mesh := BoxMesh.new()
-	post_mesh.size = Vector3(0.3, 1.2, 0.3)
-	var post_material := StandardMaterial3D.new()
-	post_material.albedo_color = Color(0.45, 0.36, 0.26)
-	post_mesh.material = post_material
+	post_mesh.size = Vector3(0.22, 1.1, 0.22)
+	post_mesh.material = wood
 	var post_shape := BoxShape3D.new()
 	post_shape.size = post_mesh.size
+	var fence_points: Array = []  # Vector3 or null (gap at route crossings)
+	var samples := _resample(points, 5.0, 4.0)
+	for i in samples.size():
+		var here: Vector2 = samples[i]
+		var ahead: Vector2 = samples[mini(i + 1, samples.size() - 1)]
+		var back: Vector2 = samples[maxi(i - 1, 0)]
+		var dir := (ahead - back).normalized()
+		var offset := Vector2(-dir.y, dir.x) * 1.5
+		var p := here + offset
+		# Gap the fence wherever any path/route crosses (gateway effect).
+		fence_points.append(null if _near_any_route(p, route_name) else Vector3(p.x, ground_at(p.x, p.y), p.y))
+	for i in fence_points.size():
+		if fence_points[i] == null:
+			continue
+		var post := StaticBody3D.new()
+		post.name = "%sFence%d" % [route_name.replace(" ", ""), i]
+		post.set_meta("no_seat", true)
+		var mi := MeshInstance3D.new()
+		mi.mesh = post_mesh
+		mi.position = Vector3(0, 0.55, 0)
+		var cs := CollisionShape3D.new()
+		cs.shape = post_shape
+		cs.position = mi.position
+		post.add_child(mi)
+		post.add_child(cs)
+		post.position = fence_points[i]
+		lanes.add_child(post)
+		if i > 0 and fence_points[i - 1] != null:
+			var a: Vector3 = fence_points[i - 1] + Vector3(0, 0.85, 0)
+			var b: Vector3 = fence_points[i] + Vector3(0, 0.85, 0)
+			var rail := MeshInstance3D.new()
+			var rail_mesh := BoxMesh.new()
+			rail_mesh.size = Vector3(0.1, 0.12, a.distance_to(b))
+			rail_mesh.material = wood
+			rail.mesh = rail_mesh
+			rail.position = (a + b) / 2.0
+			rail.look_at_from_position(rail.position, b, Vector3.UP)
+			lanes.add_child(rail)
+
+
+## True when a point sits within 4m of any path or other field route —
+## fence posts skip these spots so fences never block a walkable line.
+static func _near_any_route(p: Vector2, own_route: String) -> bool:
+	for path_name in PATHS:
+		var pts: Array = PATHS[path_name][2]
+		for k in range(pts.size() - 1):
+			if Geometry2D.get_closest_point_to_segment(p, pts[k], pts[k + 1]).distance_to(p) < 4.0:
+				return true
 	for route_name in FIELD_ROUTES:
+		if route_name == own_route:
+			continue
 		var pts: Array = FIELD_ROUTES[route_name]
-		var index := 0
-		for sample in _resample(pts, 6.0, 4.0):
-			var post := StaticBody3D.new()
-			post.name = "%sPost%d" % [route_name.replace(" ", ""), index]
-			post.set_meta("no_seat", true)  # seated right here
-			var mi := MeshInstance3D.new()
-			mi.mesh = post_mesh
-			var cs := CollisionShape3D.new()
-			cs.shape = post_shape
-			post.add_child(mi)
-			post.add_child(cs)
-			post.position = Vector3(sample.x, ground_at(sample.x, sample.y) + 0.6, sample.y)
-			lanes.add_child(post)
-			index += 1
+		for k in range(pts.size() - 1):
+			if Geometry2D.get_closest_point_to_segment(p, pts[k], pts[k + 1]).distance_to(p) < 4.0:
+				return true
+	return false
 
 
-## Terrain-conformant ribbon: subdivided every ~1m, draped at ground+0.04.
+## Terrain-conformant ribbon draped on the RENDERED mesh + 0.10m.
 static func _ribbon_mesh(points: Array, width: float) -> ArrayMesh:
 	var surface := SurfaceTool.new()
 	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var half := width / 2.0
-	var samples: Array[Vector2] = _resample(points, 1.0, 0.0)
+	var samples: Array[Vector2] = _resample(points, 0.75, 0.0)
 	for i in range(samples.size() - 1):
 		var a: Vector2 = samples[i]
 		var b: Vector2 = samples[i + 1]
 		var dir := (b - a).normalized()
 		var n := Vector2(-dir.y, dir.x) * half
-		var al := Vector3(a.x + n.x, ground_at(a.x + n.x, a.y + n.y) + 0.04, a.y + n.y)
-		var ar := Vector3(a.x - n.x, ground_at(a.x - n.x, a.y - n.y) + 0.04, a.y - n.y)
-		var bl := Vector3(b.x + n.x, ground_at(b.x + n.x, b.y + n.y) + 0.04, b.y + n.y)
-		var br := Vector3(b.x - n.x, ground_at(b.x - n.x, b.y - n.y) + 0.04, b.y - n.y)
+		var al := Vector3(a.x + n.x, ground_at(a.x + n.x, a.y + n.y) + 0.1, a.y + n.y)
+		var ar := Vector3(a.x - n.x, ground_at(a.x - n.x, a.y - n.y) + 0.1, a.y - n.y)
+		var bl := Vector3(b.x + n.x, ground_at(b.x + n.x, b.y + n.y) + 0.1, b.y + n.y)
+		var br := Vector3(b.x - n.x, ground_at(b.x - n.x, b.y - n.y) + 0.1, b.y - n.y)
 		surface.add_vertex(al)
 		surface.add_vertex(bl)
 		surface.add_vertex(br)
@@ -167,7 +197,6 @@ static func _ribbon_mesh(points: Array, width: float) -> ArrayMesh:
 	return surface.commit()
 
 
-## Resample a polyline every `step` meters (skipping `margin` at both ends).
 static func _resample(points: Array, step: float, margin: float) -> Array[Vector2]:
 	var total: float = 0.0
 	for i in range(points.size() - 1):
@@ -194,30 +223,39 @@ static func _point_at(points: Array, distance: float) -> Vector2:
 	return points[points.size() - 1]
 
 
-## All audit samples: { path_name: Array[Vector2] } at <=0.5m spacing,
-## paved and field routes alike.
-static func all_samples() -> Dictionary:
+## Audit frames: { name: {width, terminal, end, frames: [{p, d}] } } at
+## <=0.5m spacing — paved and field routes alike.
+static func sample_frames() -> Dictionary:
 	var out: Dictionary = {}
+	var all: Dictionary = {}
 	for path_name in PATHS:
-		out[path_name] = _resample(PATHS[path_name][1], 0.5, 0.0)
+		all[path_name] = {"width": PATHS[path_name][0], "terminal": PATHS[path_name][1], "pts": PATHS[path_name][2]}
 	for route_name in FIELD_ROUTES:
-		out[route_name] = _resample(FIELD_ROUTES[route_name], 0.5, 0.0)
+		all[route_name] = {"width": 1.6, "terminal": "Well" if route_name == "Well Crossing" else "Windmill", "pts": FIELD_ROUTES[route_name]}
+	for name in all:
+		var pts: Array = all[name].pts
+		var samples := _resample(pts, 0.5, 0.0)
+		var frames: Array = []
+		for i in samples.size():
+			var ahead: Vector2 = samples[mini(i + 1, samples.size() - 1)]
+			var back: Vector2 = samples[maxi(i - 1, 0)]
+			frames.append({"p": samples[i], "d": (ahead - back).normalized()})
+		out[name] = {"width": all[name].width, "terminal": all[name].terminal,
+				"first": pts[0], "last": pts[pts.size() - 1], "frames": frames}
 	return out
 
 
-## Connectivity graph over waypoints of every path/route + gates + doors.
-## Nodes merge when a waypoint sits within `tolerance` of another path's
-## segment. Returns { "components": int, "main_has": Array, "missing": Array }.
+## Connectivity graph (unchanged from v2, still real: built on the same
+## polylines that generate the walked ribbons).
 static func connectivity() -> Dictionary:
 	var polylines: Dictionary = {}
 	for path_name in PATHS:
-		polylines[path_name] = PATHS[path_name][1]
+		polylines[path_name] = PATHS[path_name][2]
 	for route_name in FIELD_ROUTES:
 		polylines[route_name] = FIELD_ROUTES[route_name]
 
-	# Collect nodes: (path, index) -> flat id.
-	var ids: Array = []          # flat list of Vector2
-	var owner_path: Array = []   # parallel list of path names
+	var ids: Array = []
+	var owner_path: Array = []
 	var offsets: Dictionary = {}
 	for path_name in polylines:
 		offsets[path_name] = ids.size()
@@ -228,14 +266,10 @@ static func connectivity() -> Dictionary:
 	var parent: Array[int] = []
 	for i in ids.size():
 		parent.append(i)
-
-	# Union consecutive waypoints within each path.
 	for path_name in polylines:
 		var base: int = offsets[path_name]
 		for i in range(polylines[path_name].size() - 1):
 			_union(parent, base + i, base + i + 1)
-
-	# Union waypoints onto other paths' segments within tolerance.
 	const TOLERANCE := 1.6
 	for i in ids.size():
 		for path_name in polylines:
@@ -244,39 +278,33 @@ static func connectivity() -> Dictionary:
 			var pts: Array = polylines[path_name]
 			var base: int = offsets[path_name]
 			for k in range(pts.size() - 1):
-				var closest: Vector2 = Geometry2D.get_closest_point_to_segment(ids[i], pts[k], pts[k + 1])
-				if closest.distance_to(ids[i]) <= TOLERANCE:
+				if Geometry2D.get_closest_point_to_segment(ids[i], pts[k], pts[k + 1]).distance_to(ids[i]) <= TOLERANCE:
 					_union(parent, i, base + k)
 					break
 
-	# Which component holds Gate E?
 	var gate_e_root := -1
 	for i in ids.size():
-		if ids[i].distance_to(GATES["Gate E"]) < 0.1:
+		if ids[i].distance_to(GATES["Gate E"]) < 0.6:
 			gate_e_root = _find(parent, i)
 			break
-
 	var roots: Dictionary = {}
 	for i in ids.size():
 		roots[_find(parent, i)] = true
-
 	var main_has: Array = []
 	var missing: Array = []
 	var targets: Dictionary = {}
 	targets.merge(GATES)
 	targets.merge(DOORS)
 	for target_name in targets:
-		var target: Vector2 = targets[target_name]
 		var found := false
 		for i in ids.size():
-			if ids[i].distance_to(target) <= 1.6 and _find(parent, i) == gate_e_root:
+			if ids[i].distance_to(targets[target_name]) <= 1.6 and _find(parent, i) == gate_e_root:
 				found = true
 				break
 		if found:
 			main_has.append(target_name)
 		else:
 			missing.append(target_name)
-
 	return {"components": roots.size(), "main_has": main_has, "missing": missing}
 
 
