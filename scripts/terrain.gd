@@ -32,8 +32,10 @@ func _ready() -> void:
 static func height_at(x: float, z: float) -> float:
 	var h: float = 0.0
 
-	# Waterfront ease (south edge of the map).
-	h -= 0.5 * smoothstep(36.0, 50.0, z)
+	# Waterfront ease (south edge). Profile tuned so the shore path stays
+	# dry and terrain passes UNDER the water surface (y=-0.12) around z=45,
+	# giving a real waterline with a sand band (S1).
+	h -= 0.5 * smoothstep(42.0, 52.0, z)
 
 	# The Rise. Direction-dependent slope run: sheer to the north and east.
 	var to_point := Vector2(x - 18.0, z - (-56.0))
@@ -54,6 +56,30 @@ static func height_at(x: float, z: float) -> float:
 	h += 0.5 * sin(x * 0.13) * sin(z * 0.08) * _region_mask(x, z, -60.0, -34.0, -16.0, 8.0)
 
 	return h
+
+
+## Height of the RENDERED terrain mesh (piecewise-linear on the 2m grid,
+## same diagonal split as _build). Everything that sits on the ground —
+## paths, seating, audits — must use THIS, not the smooth analytic
+## height_at: the difference between the two was the root cause of paths
+## sinking under the visible ground on curved slopes (A3).
+static func mesh_height_at(x: float, z: float) -> float:
+	var gx := clampf(x, X_MIN, X_MAX - 0.001)
+	var gz := clampf(z, Z_MIN, Z_MAX - 0.001)
+	var cx := floorf((gx - X_MIN) / GRID_STEP)
+	var cz := floorf((gz - Z_MIN) / GRID_STEP)
+	var x0 := X_MIN + cx * GRID_STEP
+	var z0 := Z_MIN + cz * GRID_STEP
+	var u := (gx - x0) / GRID_STEP
+	var v := (gz - z0) / GRID_STEP
+	var h00 := height_at(x0, z0)
+	var h10 := height_at(x0 + GRID_STEP, z0)
+	var h01 := height_at(x0, z0 + GRID_STEP)
+	var h11 := height_at(x0 + GRID_STEP, z0 + GRID_STEP)
+	# Builder splits each cell along p00->p11: tri(p00,p10,p11) covers u>v.
+	if u > v:
+		return h00 + (h10 - h00) * u + (h11 - h10) * v
+	return h00 + (h01 - h00) * v + (h11 - h01) * u
 
 
 ## 1 inside the rectangle, 0 outside, smooth 4m shoulders.
@@ -85,19 +111,18 @@ func _build() -> void:
 			var p01 := Vector3(x0, height_at(x0, z1), z1)
 			var p11 := Vector3(x1, height_at(x1, z1), z1)
 			# Two triangles per cell (material is double-sided, so winding
-			# order can't blank the ground out).
-			surface.add_vertex(p00)
-			surface.add_vertex(p10)
-			surface.add_vertex(p11)
-			surface.add_vertex(p00)
-			surface.add_vertex(p11)
-			surface.add_vertex(p01)
+			# order can't blank the ground out). Vertex colors paint the
+			# shoreline: moss above, sand band at the waterline, dark
+			# sediment under water (S1).
+			for p in [p00, p10, p11, p00, p11, p01]:
+				surface.set_color(_ground_color(p))
+				surface.add_vertex(p)
 
 	surface.generate_normals()
 	var mesh := surface.commit()
 
 	var material := StandardMaterial3D.new()
-	material.albedo_color = Color(0.38, 0.42, 0.32)
+	material.vertex_color_use_as_albedo = true
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED
 
 	var mesh_instance := MeshInstance3D.new()
@@ -108,3 +133,17 @@ func _build() -> void:
 	var collision := CollisionShape3D.new()
 	collision.shape = mesh.create_trimesh_shape()
 	add_child(collision)
+
+
+## Shoreline palette by height: moss ground -> sand band -> underwater.
+static func _ground_color(p: Vector3) -> Color:
+	var moss := Color("4A5540")
+	var sand := Color("B8A87C")
+	var sediment := Color("2E3A34")
+	if p.z < 38.0:
+		return moss
+	if p.y > 0.05:
+		return moss
+	if p.y > -0.35:
+		return moss.lerp(sand, clampf((0.05 - p.y) / 0.15, 0.0, 1.0))
+	return sand.lerp(sediment, clampf((-0.35 - p.y) / 0.2, 0.0, 1.0))

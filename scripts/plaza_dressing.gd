@@ -27,13 +27,14 @@ static func build(world: Node3D) -> void:
 
 	_dress_bonfire(world)
 	_big_lantern(root, Vector3(5, 0, 1))
-	_stall(root, Vector3(-7, 0, 5), 0.4)
-	_stall(root, Vector3(8, 0, 6), -0.5)
-	_stall(root, Vector3(-5, 0, -8), 1.2)
-	_bench(root, Vector3(3.4, 0, -1.2), PI / 2)
-	_bench(root, Vector3(-3.4, 0, 1.2), -PI / 2)
-	_bench(root, Vector3(0.8, 0, 3.4), 0.0)
-	_bench(root, Vector3(-0.8, 0, -3.6), PI)
+	var stall_index := 1
+	for stall_data in [[Vector3(-7, 0, 5), 0.4], [Vector3(8, 0, 6), -0.5], [Vector3(-5, 0, -8), 1.2]]:
+		_stall(root, stall_data[0], stall_data[1], stall_index)
+		stall_index += 1
+	var bench_index := 1
+	for bench_data in [[Vector3(3.4, 0, -1.2), PI / 2], [Vector3(-3.4, 0, 1.2), -PI / 2], [Vector3(0.8, 0, 3.4), 0.0], [Vector3(-0.8, 0, -3.6), PI]]:
+		_bench(root, bench_data[0], bench_data[1], bench_index)
+		bench_index += 1
 	_tree(root, Vector3(-9, 0, -1))
 
 	# Style sample on three plaza-ring houses (full dress), palette wash
@@ -162,9 +163,9 @@ static func _big_lantern(root: Node3D, at: Vector3) -> void:
 	root.add_child(body)
 
 
-static func _stall(root: Node3D, at: Vector3, yaw: float) -> void:
+static func _stall(root: Node3D, at: Vector3, yaw: float, index: int = 0) -> void:
 	var body := StaticBody3D.new()
-	body.name = "Stall"
+	body.name = "Stall%d" % index
 	body.set_meta("no_seat", true)
 	body.position = Vector3(at.x, PathNet.ground_at(at.x, at.z), at.z)
 	body.rotation.y = yaw
@@ -200,9 +201,9 @@ static func _stall(root: Node3D, at: Vector3, yaw: float) -> void:
 	root.add_child(body)
 
 
-static func _bench(root: Node3D, at: Vector3, yaw: float) -> void:
+static func _bench(root: Node3D, at: Vector3, yaw: float, index: int = 0) -> void:
 	var body := StaticBody3D.new()
-	body.name = "Bench"
+	body.name = "Bench%d" % index
 	body.set_meta("no_seat", true)
 	body.position = Vector3(at.x, PathNet.ground_at(at.x, at.z), at.z)
 	body.rotation.y = yaw
