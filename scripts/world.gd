@@ -11,6 +11,7 @@ const TerrainScript = preload("res://scripts/terrain.gd")
 const PathNetScript = preload("res://scripts/path_network.gd")
 const MapAuditScript = preload("res://scripts/map_audit.gd")
 const PlazaDressingScript = preload("res://scripts/plaza_dressing.gd")
+const VillageDressingScript = preload("res://scripts/village_dressing.gd")
 const PierBuilderScript = preload("res://scripts/pier_builder.gd")
 const RouteWalkerScript = preload("res://scripts/route_walker.gd")
 const ScreenshotTourScript = preload("res://scripts/screenshot_tour.gd")
@@ -42,6 +43,7 @@ func _ready() -> void:
 	# audits measure, so walked geometry and audited geometry cannot drift.
 	PathNetScript.build($Lanes)
 	PierBuilderScript.build(self)
+	VillageDressingScript.build(self)
 	_build_water()
 
 	_seat_all_structures()

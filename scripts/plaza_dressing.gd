@@ -43,8 +43,7 @@ static func build(world: Node3D) -> void:
 	_dress_house(ring.get_node("Ring2"), Vector3(6, 3.2, 6), "wall_cream", "roof_rust", Vector3.LEFT)
 	_dress_house(ring.get_node("Ring3"), Vector3(6, 3.2, 6), "wall_rose", "roof_slate", Vector3.LEFT)
 	_dress_house(ring.get_node("Ring6"), Vector3(8, 4, 8), "wall_sage", "roof_rust", Vector3.RIGHT)
-	for house_name in ["Ring1", "Ring4", "Ring5", "Ring7", "Ring8"]:
-		_tint(ring.get_node(house_name), "wall_cream")
+	_tint(ring.get_node("Ring1"), "wall_cream")  # 4/5/7/8 dressed by VillageDressing
 
 	print("[PlazaDressing] beauty corner built (night_preview=%s)" % GameConfig.night_preview)
 
@@ -314,5 +313,5 @@ static func _dress_house(house: Node3D, size: Vector3, wall_key: String, roof_ke
 ## Recolor an existing greybox body's meshes without touching collision.
 static func _tint(node: Node3D, wall_key: String) -> void:
 	for child in node.get_children():
-		if child is MeshInstance3D:
+		if child is MeshInstance3D and not child.has_meta("dressed"):
 			child.material_override = _flat(wall_key)

@@ -311,7 +311,7 @@ mesh = SubResource("BoxMesh_tower")
 shape = SubResource("BoxShape3D_tower")
 
 [node name="WindmillTower" type="StaticBody3D" parent="Buildings"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -56, 6, -68)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -50, 6, -70)
 
 [node name="Mesh" type="MeshInstance3D" parent="Buildings/WindmillTower"]
 mesh = SubResource("BoxMesh_tower")
@@ -663,21 +663,12 @@ shape = SubResource("BoxShape3D_houseA")
 [node name="WestVillage" type="Node3D" parent="."]
 
 [node name="WellRow1" type="StaticBody3D" parent="WestVillage"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23, 1.6, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -25, 1.6, 0)
 
 [node name="Mesh" type="MeshInstance3D" parent="WestVillage/WellRow1"]
 mesh = SubResource("BoxMesh_houseB")
 
 [node name="Shape" type="CollisionShape3D" parent="WestVillage/WellRow1"]
-shape = SubResource("BoxShape3D_houseB")
-
-[node name="WellRow2" type="StaticBody3D" parent="WestVillage"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -29, 1.6, -3)
-
-[node name="Mesh" type="MeshInstance3D" parent="WestVillage/WellRow2"]
-mesh = SubResource("BoxMesh_houseB")
-
-[node name="Shape" type="CollisionShape3D" parent="WestVillage/WellRow2"]
 shape = SubResource("BoxShape3D_houseB")
 
 [node name="Barn1" type="StaticBody3D" parent="WestVillage"]
