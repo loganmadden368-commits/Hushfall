@@ -11,6 +11,24 @@ const TerrainScript = preload("res://scripts/terrain.gd")
 const PathNetScript = preload("res://scripts/path_network.gd")
 const MapAuditScript = preload("res://scripts/map_audit.gd")
 const PlazaDressingScript = preload("res://scripts/plaza_dressing.gd")
+const PierBuilderScript = preload("res://scripts/pier_builder.gd")
+const RouteWalkerScript = preload("res://scripts/route_walker.gd")
+const ScreenshotTourScript = preload("res://scripts/screenshot_tour.gd")
+
+const WATER_SHADER := "
+shader_type spatial;
+uniform vec3 deep_color : source_color = vec3(0.07, 0.12, 0.2);
+uniform vec3 crest_color : source_color = vec3(0.16, 0.24, 0.34);
+void vertex() {
+	VERTEX.y += sin(VERTEX.x * 0.35 + TIME * 0.8) * 0.05
+			+ cos(VERTEX.z * 0.3 + TIME * 0.6) * 0.05;
+}
+void fragment() {
+	float band = sin(UV.x * 90.0 + TIME * 0.15) * sin(UV.y * 70.0 - TIME * 0.12);
+	ALBEDO = mix(deep_color, crest_color, smoothstep(0.72, 0.95, band));
+	ROUGHNESS = 0.3;
+	SPECULAR = 0.4;
+}"
 
 # Bodies that intentionally do not seat on terrain.
 const SEAT_SKIP: Array[String] = ["LighthouseSpit"]  # rock IN the water
@@ -23,14 +41,47 @@ func _ready() -> void:
 	# Paths are GENERATED from path_network.gd data — the same data the
 	# audits measure, so walked geometry and audited geometry cannot drift.
 	PathNetScript.build($Lanes)
+	PierBuilderScript.build(self)
+	_build_water()
 
 	_seat_all_structures()
 
 	# Style-guide beauty corner (Part 3A) — plaza only until approved.
 	PlazaDressingScript.build(self)
 
+	# Perception machinery modes (A3): feet and eyes.
+	var user_args := OS.get_cmdline_user_args()
+	if "--walk-routes" in user_args:
+		await RouteWalkerScript.run_all(self)
+		get_tree().quit()
+		return
+	if "--screenshot-tour" in user_args:
+		await ScreenshotTourScript.run(self)
+		get_tree().quit()
+		return
+
 	if GameConfig.map_audit:
 		_run_map_audit()
+
+
+## Animated night water (S2). HONESTY (3E): sine-bob vertex waves + a
+## scrolling band shader — Phase 9 replaces this with real water (foam,
+## fresnel, reflections).
+func _build_water() -> void:
+	var plane := PlaneMesh.new()
+	plane.size = Vector2(400, 160)
+	plane.subdivide_width = 96
+	plane.subdivide_depth = 48
+	var shader := Shader.new()
+	shader.code = WATER_SHADER
+	var material := ShaderMaterial.new()
+	material.shader = shader
+	plane.material = material
+	var water := MeshInstance3D.new()
+	water.name = "Water"
+	water.mesh = plane
+	water.position = Vector3(25, -0.12, 124)
+	add_child(water)
 
 	multiplayer.peer_connected.connect(_on_peer_connected)
 	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
@@ -87,8 +138,15 @@ func _seat_all_structures() -> void:
 		var node: Node = stack.pop_back()
 		for child in node.get_children():
 			stack.append(child)
-		if node is StaticBody3D and node.name != "Terrain" \
-				and not node.has_meta("no_seat") and not (node.name in SEAT_SKIP):
+		if node is StaticBody3D and node.name != "Terrain":
+			# Exemption transparency law (A3): every skip prints its reason.
+			if node.has_meta("no_seat"):
+				var reason: String = node.get_meta("exempt_reason", "self-seated on ground_at at creation")
+				print("[Seating] EXEMPT: %s — %s" % [node.name, reason])
+				continue
+			if node.name in SEAT_SKIP:
+				print("[Seating] EXEMPT: %s — intentionally in water" % node.name)
+				continue
 			_seat_body(node)
 
 

@@ -84,24 +84,16 @@ func _unhandled_input(event: InputEvent) -> void:
 		head.rotation.x = clampf(head.rotation.x, deg_to_rad(-89.0), deg_to_rad(89.0))
 
 
+const PlayerMovement = preload("res://scripts/player_movement.gd")
+
+
 func _physics_process(delta: float) -> void:
 	if not is_multiplayer_authority():
 		return
 
-	if not is_on_floor():
-		velocity += get_gravity() * delta
-
-	# WASD -> a direction relative to where the body is facing.
+	# WASD -> a direction relative to where the body is facing. The actual
+	# locomotion lives in the shared PlayerMovement module so the route
+	# walker audit uses the IDENTICAL physics (A3: no models of models).
 	var input_dir: Vector2 = Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	var direction: Vector3 = (transform.basis * Vector3(input_dir.x, 0.0, input_dir.y)).normalized()
-
-	if direction:
-		velocity.x = direction.x * GameConfig.move_speed
-		velocity.z = direction.z * GameConfig.move_speed
-	else:
-		# No input -> stop instantly. (Acceleration/friction feel is a
-		# playtest dial for much later; instant is fine for greybox.)
-		velocity.x = 0.0
-		velocity.z = 0.0
-
-	move_and_slide()
+	PlayerMovement.step(self, direction, delta)

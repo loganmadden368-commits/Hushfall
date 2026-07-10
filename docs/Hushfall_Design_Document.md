@@ -332,6 +332,28 @@ Rule of trust: a verification claim counts only if a printed boot-audit
 line proves it. **Scope (2026-07-02): project-wide law** — networking,
 tasks, roles, and voice included, not just the map.
 
+**The pattern, named (2026-07-09):** every audit/walk-test divergence had
+one shape — audits verified ABSTRACTIONS (graph labels, centerlines,
+origin points, my own ground function) while players experience GEOMETRY.
+Specifics: connectivity checked waypoint labels I defined as "gates"
+(paving never touched the plaza disc); intersections sampled centerlines
+with a blanket door-zone carve-out (ribbon edges and the Greenhouse
+overlap were invisible); the lighthouse slope check evaluated ground_at()
+— my own model asked my own model, while the seating audit name-exempted
+the exact objects under repair. Laws that follow:
+1. Audits may only consume the rendered scene and the physics world —
+   never a function, table, or label that also produced the thing checked.
+2. A VISUAL claim counts only with a personally reviewed screenshot
+   (screenshot tour, shared folder). A TRAVERSAL claim counts only with a
+   capsule-walker log (player-identical physics via the shared movement
+   module — models of the player are banned like all models-of-models).
+3. EXEMPTION TRANSPARENCY: every exemption in every audit prints in boot
+   output with its reason. Silent exemptions are banned. The blanket
+   door-zone rule is replaced by: a path may overlap ONLY the structure
+   it terminates at, within its door-landing area (2.4m).
+4. The analytic terrain function and its rendered 2m mesh differ; all
+   ground queries use mesh_height_at (the rendered geometry).
+
 ### A4 — Style rules (binding)
 
 - **The glow rule:** the lantern-glow accent (`FFB55C` and near hues —
