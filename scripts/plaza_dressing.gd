@@ -1,20 +1,30 @@
 extends RefCounted
-## Plaza beauty corner (Part 3A) — the style-guide sample, built
-## procedurally from the [style] palette dials so a repaint is a config
-## edit. Everything spawns under "PlazaDressing" at runtime: cheap to
-## redo, nothing baked into the scene file.
-##
-## Collision hygiene: props players collide with (stalls, benches, tree
-## TRUNKS, lantern post) are simple StaticBody boxes; pure visuals (roofs,
-## flames, canopies) have no collision, so gameplay never changes because
-## something got cute. All bodies carry no_seat (they seat themselves on
-## the flat plaza) but remain covered by audit D's footprint check.
-##
-## HONESTY (3E): flame = emissive cone (particles are Phase 9); windows
-## glow uniformly (no interior lighting logic); roof slabs meet walls with
-## visible seams up close; canopies are spheres. All deliberate blockout.
+## Plaza recomposition (P3) — composition with INTENT:
+##  - The bonfire is the focal point; four benches face it.
+##  - Three market stalls form an arc on the north-east quadrant, fronts
+##    toward the fire.
+##  - The big lantern stands south-west as the deliberate counter-light.
+##  - The tree stands north-west, framing (not blocking) the Bell Tower
+##    skyline from the square.
+##  - TEN one-body houses (P2) sit tangent ON the square's circle
+##    (fronts at r=12, the disc edge), doors facing center, leaving the
+##    four gate corridors clear.
+## All generated; the overlap/assembly/seating audits arbitrate.
 
 const PathNet = preload("res://scripts/path_network.gd")
+const HouseBuilder = preload("res://scripts/house_builder.gd")
+
+const RING_RADIUS: float = 14.3  # fronts land exactly on the disc edge r=12
+# Bearings (deg, 0=east, 90=south) avoiding gates E=0, S=76, W=202, N=270.
+const RING_HOUSES: Array = [
+	[30.0, Vector3(4.6, 3.2, 4.6), "wall_cream", "roof_rust"],
+	[100.0, Vector3(4.6, 3.4, 4.6), "wall_sage", "roof_rust"],
+	[140.0, Vector3(4.6, 3.0, 4.6), "wall_cream", "roof_slate"],
+	[180.0, Vector3(4.6, 3.2, 4.6), "wall_rose", "roof_rust"],
+	[235.0, Vector3(4.6, 3.0, 4.6), "wall_sage", "roof_slate"],
+	[295.0, Vector3(4.6, 3.4, 4.6), "wall_cream", "roof_rust"],
+	[331.0, Vector3(4.6, 3.0, 4.6), "wall_rose", "roof_slate"],
+]
 
 
 static func build(world: Node3D) -> void:
@@ -25,31 +35,42 @@ static func build(world: Node3D) -> void:
 	if GameConfig.night_preview:
 		_apply_night(world)
 
+	# Ring houses: tangent to the disc, doors to the fire.
+	var ring: Node3D = world.get_node("PlazaRing")
+	for entry in RING_HOUSES:
+		var theta: float = deg_to_rad(entry[0])
+		var x: float = RING_RADIUS * cos(theta)
+		var z: float = RING_RADIUS * sin(theta)
+		var yaw: float = PI / 2.0 - theta  # local -Z (door) points at center
+		HouseBuilder.build(ring, "RingHouse%d" % int(entry[0]), x, z, yaw, entry[1], entry[2], entry[3])
+
 	_dress_bonfire(world)
-	_big_lantern(root, Vector3(5, 0, 1))
+
+	# Counter-light SW (bearing 130, r=6).
+	_big_lantern(root, Vector3(-3.9, 0, 4.6))
+
+	# Market arc NE (bearings 295/315/335, r=8), fronts toward the fire.
 	var stall_index := 1
-	for stall_data in [[Vector3(-7, 0, 5), 0.4], [Vector3(8, 0, 6), -0.5], [Vector3(-5, 0, -8), 1.2]]:
-		_stall(root, stall_data[0], stall_data[1], stall_index)
+	for bearing in [295.0, 315.0, 335.0]:
+		var theta: float = deg_to_rad(bearing)
+		_stall(root, Vector3(8.0 * cos(theta), 0, 8.0 * sin(theta)), PI / 2.0 - theta, stall_index)
 		stall_index += 1
+
+	# Benches facing the fire (r=3.6, one per quadrant, offset off gates).
 	var bench_index := 1
-	for bench_data in [[Vector3(3.4, 0, -1.2), PI / 2], [Vector3(-3.4, 0, 1.2), -PI / 2], [Vector3(0.8, 0, 3.4), 0.0], [Vector3(-0.8, 0, -3.6), PI]]:
-		_bench(root, bench_data[0], bench_data[1], bench_index)
+	for bearing in [40.0, 130.0, 220.0, 310.0]:
+		var theta: float = deg_to_rad(bearing)
+		_bench(root, Vector3(3.6 * cos(theta), 0, 3.6 * sin(theta)), PI / 2.0 - theta, bench_index)
 		bench_index += 1
-	_tree(root, Vector3(-9, 0, -1))
 
-	# Style sample on three plaza-ring houses (full dress), palette wash
-	# on the rest of the ring.
-	var ring := world.get_node("PlazaRing")
-	_dress_house(ring.get_node("Ring2"), Vector3(6, 3.2, 6), "wall_cream", "roof_rust", Vector3.LEFT)
-	_dress_house(ring.get_node("Ring3"), Vector3(6, 3.2, 6), "wall_rose", "roof_slate", Vector3.LEFT)
-	_dress_house(ring.get_node("Ring6"), Vector3(8, 4, 8), "wall_sage", "roof_rust", Vector3.RIGHT)
-	_tint(ring.get_node("Ring1"), "wall_cream")  # 4/5/7/8 dressed by VillageDressing
+	# Tree NW (bearing 235, r=9): frames the Bell Tower view north.
+	_tree(root, Vector3(9.0 * cos(deg_to_rad(235.0)), 0, 9.0 * sin(deg_to_rad(235.0))))
 
-	print("[PlazaDressing] beauty corner built (night_preview=%s)" % GameConfig.night_preview)
+	print("[PlazaDressing] recomposed: %d ring houses, 3 stalls, 4 benches, counter-light, tree" % RING_HOUSES.size())
 
 
 static func _color(key: String) -> Color:
-	return GameConfig.palette.get(key, Color.MAGENTA)  # magenta = missing dial
+	return GameConfig.palette.get(key, Color.MAGENTA)
 
 
 static func _flat(key: String) -> StandardMaterial3D:
@@ -59,15 +80,12 @@ static func _flat(key: String) -> StandardMaterial3D:
 
 
 static func _glow(key: String, energy: float) -> StandardMaterial3D:
-	var material := StandardMaterial3D.new()
-	material.albedo_color = _color(key)
+	var material := _flat(key)
 	material.emission_enabled = true
 	material.emission = _color(key)
 	material.emission_energy_multiplier = energy
 	return material
 
-
-# ---------------------------------------------------------------- night ----
 
 static func _apply_night(world: Node3D) -> void:
 	var environment := Environment.new()
@@ -83,23 +101,21 @@ static func _apply_night(world: Node3D) -> void:
 	world_env.name = "NightPreview"
 	world_env.environment = environment
 	world.add_child(world_env)
-
-	# The sun becomes faint blue moonlight.
 	var sun: DirectionalLight3D = world.get_node("Sun")
 	sun.light_color = Color(0.6, 0.7, 0.95)
 	sun.light_energy = 0.22
 	sun.rotation_degrees = Vector3(-62, 40, 0)
 
 
-# ---------------------------------------------------------------- pieces ----
-
 static func _dress_bonfire(world: Node3D) -> void:
 	var bonfire: Node3D = world.get_node("Bonfire")
-	# Recolor the old greybox drum to stone; add ring stones, flame, light.
-	_tint(bonfire, "stone_grey")
+	for child in bonfire.get_children():
+		if child is MeshInstance3D and not child.has_meta("dressed"):
+			child.material_override = _flat("stone_grey")
 	for i in 8:
 		var angle := i * TAU / 8.0
 		var stone := MeshInstance3D.new()
+		stone.set_meta("dressed", true)
 		var box := BoxMesh.new()
 		box.size = Vector3(0.7, 0.5, 0.5)
 		box.material = _flat("stone_grey")
@@ -108,6 +124,7 @@ static func _dress_bonfire(world: Node3D) -> void:
 		stone.rotation.y = -angle
 		bonfire.add_child(stone)
 	var flame := MeshInstance3D.new()
+	flame.set_meta("dressed", true)
 	var cone := CylinderMesh.new()
 	cone.top_radius = 0.05
 	cone.bottom_radius = 0.8
@@ -162,7 +179,7 @@ static func _big_lantern(root: Node3D, at: Vector3) -> void:
 	root.add_child(body)
 
 
-static func _stall(root: Node3D, at: Vector3, yaw: float, index: int = 0) -> void:
+static func _stall(root: Node3D, at: Vector3, yaw: float, index: int) -> void:
 	var body := StaticBody3D.new()
 	body.name = "Stall%d" % index
 	body.set_meta("no_seat", true)
@@ -187,20 +204,20 @@ static func _stall(root: Node3D, at: Vector3, yaw: float, index: int = 0) -> voi
 		post_box.size = Vector3(0.15, 2.2, 0.15)
 		post_box.material = _flat("wood_warm")
 		post.mesh = post_box
-		post.position = Vector3(side * 1.0, 1.1, -0.4)
+		post.position = Vector3(side * 1.0, 1.1, 0.4)
 		body.add_child(post)
 	var awning := MeshInstance3D.new()
 	var awning_box := BoxMesh.new()
 	awning_box.size = Vector3(2.6, 0.08, 1.8)
 	awning_box.material = _flat("wall_rose")
 	awning.mesh = awning_box
-	awning.position = Vector3(0, 2.25, 0.1)
-	awning.rotation.x = deg_to_rad(-12)
+	awning.position = Vector3(0, 2.25, -0.1)
+	awning.rotation.x = deg_to_rad(12)
 	body.add_child(awning)
 	root.add_child(body)
 
 
-static func _bench(root: Node3D, at: Vector3, yaw: float, index: int = 0) -> void:
+static func _bench(root: Node3D, at: Vector3, yaw: float, index: int) -> void:
 	var body := StaticBody3D.new()
 	body.name = "Bench%d" % index
 	body.set_meta("no_seat", true)
@@ -251,7 +268,6 @@ static func _tree(root: Node3D, at: Vector3) -> void:
 	trunk_cs.position = trunk_mi.position
 	body.add_child(trunk_mi)
 	body.add_child(trunk_cs)
-	# Canopy: NO collision — players walk under (3D rule).
 	for blob in [[Vector3(0, 3.4, 0), 1.9, "foliage_deep"], [Vector3(0.7, 4.4, 0.4), 1.3, "foliage_bright"]]:
 		var canopy := MeshInstance3D.new()
 		var sphere := SphereMesh.new()
@@ -262,56 +278,3 @@ static func _tree(root: Node3D, at: Vector3) -> void:
 		canopy.position = blob[0]
 		body.add_child(canopy)
 	root.add_child(body)
-
-
-## Full dress: palette walls + pitched roof + oversized door + glowing
-## windows + chimney, on the plaza-facing side. Visual only — the house's
-## collision box is untouched.
-static func _dress_house(house: Node3D, size: Vector3, wall_key: String, roof_key: String, facing: Vector3) -> void:
-	_tint(house, wall_key)
-	var half := size.x / 2.0
-	var top := size.y / 2.0  # house root sits at box center
-	var span := half + 0.6   # roof overhang
-	var rise := span * tan(deg_to_rad(38))
-	var slab_len := span / cos(deg_to_rad(38))
-	for side in [-1.0, 1.0]:
-		var slab := MeshInstance3D.new()
-		var slab_box := BoxMesh.new()
-		slab_box.size = Vector3(slab_len, 0.15, size.z + 1.2)
-		slab_box.material = _flat(roof_key)
-		slab.mesh = slab_box
-		slab.position = Vector3(side * span / 2.0, top + rise / 2.0, 0)
-		slab.rotation.z = -side * deg_to_rad(38)
-		house.add_child(slab)
-	var chimney := MeshInstance3D.new()
-	var chimney_box := BoxMesh.new()
-	chimney_box.size = Vector3(0.8, 1.8, 0.8)
-	chimney_box.material = _flat("stone_grey")
-	chimney.mesh = chimney_box
-	chimney.position = Vector3(half * 0.5, top + rise * 0.8, size.z * 0.25)
-	house.add_child(chimney)
-	# Oversized door + two glowing windows on the plaza-facing wall.
-	var face_offset := facing * (half + 0.07)
-	var door := MeshInstance3D.new()
-	var door_box := BoxMesh.new()
-	door_box.size = Vector3(0.12, 2.3, 1.5) if facing.x != 0 else Vector3(1.5, 2.3, 0.12)
-	door_box.material = _flat("wood_warm")
-	door.mesh = door_box
-	door.position = face_offset + Vector3(0, 1.15 - top, 0)
-	house.add_child(door)
-	for window_side in [-1.6, 1.6]:
-		var window := MeshInstance3D.new()
-		var window_box := BoxMesh.new()
-		window_box.size = Vector3(0.1, 0.9, 0.9) if facing.x != 0 else Vector3(0.9, 0.9, 0.1)
-		window_box.material = _glow("lantern_glow", 0.7)
-		window.mesh = window_box
-		window.position = face_offset + Vector3(0, 1.7 - top, window_side) if facing.x != 0 \
-				else face_offset + Vector3(window_side, 1.7 - top, 0)
-		house.add_child(window)
-
-
-## Recolor an existing greybox body's meshes without touching collision.
-static func _tint(node: Node3D, wall_key: String) -> void:
-	for child in node.get_children():
-		if child is MeshInstance3D and not child.has_meta("dressed"):
-			child.material_override = _flat(wall_key)

@@ -54,7 +54,7 @@ const PATHS: Dictionary = {
 
 # Unpaved-but-WORN field routes (R2): narrow worn strip + fence line.
 const FIELD_ROUTES: Dictionary = {
-	"Well Crossing": [Vector2(0, -15), Vector2(-6, -19), Vector2(-12, -20.5), Vector2(-22, -20), Vector2(-23.5, -17), Vector2(-24.6, -14.2)],
+	"Well Crossing": [Vector2(0, -15), Vector2(-2, -20), Vector2(-12, -21), Vector2(-22, -20), Vector2(-23.5, -17), Vector2(-24.6, -14.2)],
 	"Windmill Field": [Vector2(0, -15), Vector2(-4, -22), Vector2(-8, -30), Vector2(-48, -30), Vector2(-52, -34), Vector2(-52, -46), Vector2(-50, -50), Vector2(-48, -53.6)],
 }
 

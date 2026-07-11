@@ -39,7 +39,7 @@ const ROUTES: Array = [
 	["Greenhouse", "East Lane", "E", [Vector2(4, 0), Vector2(13, 0), Vector2(19, 0), Vector2(25, 0), Vector2(29, 2), Vector2(30.5, 5)]],
 	["Greenhouse", "Back Path", "S", [Vector2(2, 4), Vector2(4, 16), Vector2(6, 24), Vector2(14, 28), Vector2(23, 21), Vector2(28, 13), Vector2(30.5, 5)]],
 	["Well", "Well Lane", "W", [Vector2(-4, -1.5), Vector2(-15, -6), Vector2(-20, -9), Vector2(-24.6, -14)]],
-	["Well", "Field Crossing (posts)", "N", [Vector2(0, -4), Vector2(0, -15), Vector2(-6, -19), Vector2(-12, -20.5), Vector2(-22, -20), Vector2(-23.5, -17), Vector2(-24.6, -14.2)]],
+	["Well", "Field Crossing (posts)", "N", [Vector2(0, -4), Vector2(0, -15), Vector2(-2, -20), Vector2(-12, -21), Vector2(-22, -20), Vector2(-23.5, -17), Vector2(-24.6, -14.2)]],
 	["Cellar", "Market Route", "E", [Vector2(4, 0), Vector2(13, 0), Vector2(19, 0), Vector2(25, 0), Vector2(29, 2), Vector2(31, -4), Vector2(38.5, -7), Vector2(45, -11.5), Vector2(45.5, -20), Vector2(45.5, -38), Vector2(44.6, -41), Vector2(45.8, -45.4)]],
 	["Cellar", "Upper Route", "N", [Vector2(0, -4), Vector2(0, -15), Vector2(6, -24), Vector2(14, -30.5), Vector2(26, -32), Vector2(34, -32.5), Vector2(41.5, -34.5), Vector2(45.5, -38), Vector2(44.6, -41), Vector2(45.8, -45.4)]],
 	["Bell Tower", "North Trunk", "N", [Vector2(0, -4), Vector2(0, -15), Vector2(4, -22), Vector2(8, -30), Vector2(12, -38), Vector2(15, -44), Vector2(18, -48.4)]],
@@ -86,6 +86,7 @@ static func run(world: Node3D) -> void:
 	_audit_walk_times()
 	_audit_landmarks(world)
 	_audit_nook(world)
+	_print_soft_cover()
 	print("================ AUDIT COMPLETE ================")
 	print("")
 
@@ -233,40 +234,66 @@ static func _audit_plaza_continuity() -> void:
 		print("  PASS")
 
 
-## Structure-structure overlap (visual bounds, world-axis AABB, 0.3 shrink).
+## Structure-structure overlap — EXACT oriented-box test (2D SAT in the
+## ground plane + vertical interval), so rotated houses don't false-flag.
 static func _audit_overlap(world: Node3D) -> void:
-	print("--- structure overlap (visual bounds) ---")
+	print("--- structure overlap (visual bounds, oriented SAT) ---")
 	var entries: Array = []
-	for container_name in ["Buildings", "MarketLanes", "WestVillage", "PlazaRing"]:
+	for container_name in ["Buildings", "MarketLanes", "WestVillage", "PlazaRing", "DensityHouses"]:
 		if not world.has_node(container_name):
 			continue
 		for body in world.get_node(container_name).get_children():
-			var aabb := _visual_aabb(body)
-			if aabb.size != Vector3.ZERO:
-				entries.append({"name": "%s/%s" % [container_name, body.name], "aabb": aabb})
+			var entry := _obb_entry(body, container_name)
+			if entry.has("center"):
+				entries.append(entry)
 	var violations: int = 0
 	for i in entries.size():
 		for j in range(i + 1, entries.size()):
-			var a: AABB = entries[i].aabb.grow(-0.15)
-			if a.intersects(entries[j].aabb.grow(-0.15)):
+			if entries[i].ymin > entries[j].ymax - 0.05 or entries[j].ymin > entries[i].ymax - 0.05:
+				continue
+			if _obb_overlap(entries[i], entries[j], 0.05):
 				print("  OVERLAP: %s <-> %s" % [entries[i].name, entries[j].name])
 				violations += 1
 	print("  %d structures checked - %s" % [entries.size(), "PASS" if violations == 0 else "%d OVERLAPS" % violations])
 
 
-static func _visual_aabb(body: Node3D) -> AABB:
-	var merged := AABB()
-	var first := true
-	var stack: Array = [body]
-	while not stack.is_empty():
-		var node: Node = stack.pop_back()
-		for child in node.get_children():
-			stack.append(child)
-		if node is MeshInstance3D and node.mesh != null and node.name != "Plinth":
-			var aabb: AABB = (node as MeshInstance3D).global_transform * node.get_aabb()
-			merged = aabb if first else merged.merge(aabb)
-			first = false
-	return merged if not first else AABB()
+static func _obb_entry(body: Node3D, container_name: String) -> Dictionary:
+	var min_local := Vector3(1e9, 1e9, 1e9)
+	var max_local := Vector3(-1e9, -1e9, -1e9)
+	var found := false
+	for child in body.get_children():
+		if child is MeshInstance3D and child.mesh != null and child.name != "Plinth":
+			var aabb: AABB = (child as Node3D).transform * (child as MeshInstance3D).get_aabb()
+			min_local = min_local.min(aabb.position)
+			max_local = max_local.max(aabb.position + aabb.size)
+			found = true
+	if not found:
+		return {}
+	var center_local := (min_local + max_local) / 2.0
+	var center_world: Vector3 = body.global_transform * center_local
+	return {
+		"name": "%s/%s" % [container_name, body.name],
+		"center": Vector2(center_world.x, center_world.z),
+		"half": Vector2((max_local.x - min_local.x) / 2.0, (max_local.z - min_local.z) / 2.0),
+		"yaw": body.global_rotation.y,
+		"ymin": center_world.y - (max_local.y - min_local.y) / 2.0,
+		"ymax": center_world.y + (max_local.y - min_local.y) / 2.0,
+	}
+
+
+static func _obb_overlap(a: Dictionary, b: Dictionary, shrink: float) -> bool:
+	for entry in [a, b]:
+		var ax := Vector2(cos(entry.yaw), -sin(entry.yaw))
+		var az := Vector2(sin(entry.yaw), cos(entry.yaw))
+		for axis in [ax, az]:
+			var ra: float = (a.half.x - shrink) * absf(axis.dot(Vector2(cos(a.yaw), -sin(a.yaw)))) \
+					+ (a.half.y - shrink) * absf(axis.dot(Vector2(sin(a.yaw), cos(a.yaw))))
+			var rb: float = (b.half.x - shrink) * absf(axis.dot(Vector2(cos(b.yaw), -sin(b.yaw)))) \
+					+ (b.half.y - shrink) * absf(axis.dot(Vector2(sin(b.yaw), cos(b.yaw))))
+			var distance: float = absf(axis.dot((b.center as Vector2) - (a.center as Vector2)))
+			if distance > ra + rb:
+				return false
+	return true
 
 
 ## Component assembly — parts seat on their supports (visual bounds).
@@ -451,6 +478,19 @@ static func _audit_landmarks(world: Node3D) -> void:
 	for landmark_name in totals:
 		print("  %-26s %3.0f%%" % [landmark_name, 100.0 * totals[landmark_name] / maxf(sample_count, 1)])
 	print("  at least one:              %3.0f%%" % (100.0 * any_count / maxf(sample_count, 1)))
+
+
+## Soft-cover inventory (3D rules): deliberate hiding spots near paths.
+static func _print_soft_cover() -> void:
+	print("--- soft-cover inventory (all DELIBERATE) ---")
+	print("  shore rocks x6 along the waterline (Waterfront path)")
+	print("  field fences (gapped) along both post-marked routes")
+	print("  market stalls x3 (plaza NE arc) + benches x4")
+	print("  density additions flagged deliberate: market outer row x3")
+	print("    (double-sided street), alley infill, shore huts x3 (17.5m")
+	print("    lonely-walk gap before the causeway preserved), well hamlet")
+	print("    x2, rise watch hut, windmill barn, Ring9 + SW outskirt")
+	print("  plaza ring gaps between tangent houses = shallow pockets")
 
 
 static func _audit_nook(world: Node3D) -> void:

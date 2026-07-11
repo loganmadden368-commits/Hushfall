@@ -61,6 +61,13 @@ func _ready() -> void:
 		await ScreenshotTourScript.run(self)
 		get_tree().quit()
 		return
+	if "--fps-probe" in user_args:
+		# Honest frame-rate sample: let the counter warm up for ~4s first.
+		for i in 240:
+			await get_tree().process_frame
+		print("[FpsProbe] %.0f FPS after warmup (vsync may cap at refresh rate)" % Engine.get_frames_per_second())
+		get_tree().quit()
+		return
 
 	if GameConfig.map_audit:
 		_run_map_audit()

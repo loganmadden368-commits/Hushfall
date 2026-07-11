@@ -130,6 +130,14 @@ audit. Greybox lives in `scenes/world.tscn` + `scripts/terrain.gd`
 - **Playtest watch item:** if rounds consistently end with the Lighthouse
   as the last task, the Mimic learns to camp the causeway endgame. Likely
   lever is task-set randomization (game-design fix, not a map fix).
+- **2026-07-09 perception pass:** plaza recomposed (7 one-body tangent
+  ring houses, doors to the fire; benches face the bonfire focal point;
+  market stall arc NE; counter-light SW; framing tree NW), 13 styled
+  density houses added per approved D1 plan (lonely-walk rider: 17.5m
+  empty shore before the causeway), real shoreline + animated water,
+  lighthouse approach rebuilt as gangway → pier → platform (walker-proven).
+  Everything generated procedurally — cheap to re-run when the style gate
+  adjusts proportions.
 
 ---
 

@@ -13,10 +13,10 @@ const HouseBuilder = preload("res://scripts/house_builder.gd")
 # name, x, z, yaw, size, wall, roof
 const DENSITY: Array = [
 	["MarketOuter1", 54.0, -6.0, PI / 2, Vector3(7, 3.4, 6), "wall_cream", "roof_rust"],
-	["MarketOuter2", 58.0, -20.0, PI / 2, Vector3(8, 3.8, 7), "wall_sage", "roof_slate"],
-	["MarketOuter3", 61.5, -25.0, PI / 2, Vector3(6, 3.2, 6), "wall_rose", "roof_rust"],
+	["MarketOuter2", 62.0, -16.0, PI / 2, Vector3(8, 3.8, 7), "wall_sage", "roof_slate"],
+	["MarketOuter3", 61.5, -27.0, PI / 2, Vector3(6, 3.2, 6), "wall_rose", "roof_rust"],
 	["AlleyInfill", 20.5, -21.5, -PI / 2, Vector3(6, 3.0, 6), "wall_cream", "roof_slate"],
-	["Ring9", 17.5, -14.0, 2.24, Vector3(5, 3.0, 5), "wall_rose", "roof_rust"],
+	["Ring9", 19.0, -13.0, 2.24, Vector3(5, 3.0, 5), "wall_rose", "roof_rust"],
 	["Outskirt1", -20.0, 22.0, -0.74, Vector3(7, 3.4, 7), "wall_sage", "roof_rust"],
 	["WellHamlet1", -37.0, 3.0, -PI / 2, Vector3(6, 3.2, 6), "wall_rose", "roof_slate"],
 	["WellHamlet2", -40.0, -6.0, -PI / 2, Vector3(7, 3.6, 6), "wall_cream", "roof_rust"],
@@ -43,10 +43,6 @@ const DRESS: Dictionary = {
 	"WestVillage/WellRow1": [Vector2(6, 6), 3.2, "wall_cream", "roof_slate"],
 	"WestVillage/Barn1": [Vector2(6, 6), 3.2, "wall_rose", "roof_rust"],
 	"WestVillage/Barn2": [Vector2(6, 6), 3.2, "wall_cream", "roof_slate"],
-	"PlazaRing/Ring4": [Vector2(8, 8), 4.0, "wall_cream", "roof_rust"],
-	"PlazaRing/Ring5": [Vector2(6, 6), 3.2, "wall_rose", "roof_slate"],
-	"PlazaRing/Ring7": [Vector2(6, 6), 3.2, "wall_sage", "roof_rust"],
-	"PlazaRing/Ring8": [Vector2(8, 8), 4.0, "wall_cream", "roof_slate"],
 }
 
 # Palette wash only (no pitched roof: tunnels, shells, towers, fences).
